@@ -2,8 +2,9 @@
 
 import math
 import pickle
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from os import listdir
+import numpy
 
 # Globális változók
 allAges = {}
@@ -12,8 +13,9 @@ egos = []
 smoothedAgeDistr = []
 
 # Beállítáok
-opt_s = 5
+opt_sigma = 1
 opt_gSize = 5
+
 
 def save_obj(obj, name):
     with open('obj/' + name + '.pkl', 'wb+') as f:
@@ -92,7 +94,9 @@ def make_histogram(ego):
         for a in range(10, 81):
             # K[a] += gauss(a - avg)/smoothedAgeDistr[int(avg+0.5)-10]
             # K[a] += gauss(a - avg)
-            K[a] += gauss(a - avg)/(5 + sigma)*gauss(groupSize - 3)
+
+            # *gauss(groupSize - 3)
+            K[a] += gauss(a - avg)/(opt_sigma + sigma)     # TODO:
     return K
 
 
@@ -176,7 +180,7 @@ def estimate_all_ages():
             continue
         real_age = allAges[ego]
         diff = pow((estimated_age - real_age), 2)
-        dev += pow((estimated_age - real_age), 2)
+        dev += diff
         if diff <= 4:
             pm2 += 1
         counter += 1
@@ -197,8 +201,48 @@ if __name__ == '__main__':
     allAges = load_obj('allAges')
     # allAges = read_ages()
     smoothedAgeDistr = load_obj('smoothedAgeDistr')
-    print(estimate_all_ages())
 
+
+    # Gradiens módszer
+    opt_sigma = 4.7
+    dx = 2
+    gamma = 10
+
+    f1 = estimate_all_ages()
+    prev_opt_sigma = opt_sigma
+    opt_sigma += dx
+    f2 = estimate_all_ages()
+    derivative = (f2 - f1) / dx
+    opt_sigma += derivative * gamma
+    prev_val = f1
+    prev_der = derivative
+
+    precision = 1
+    while precision >= 0.00001:
+        f1 = estimate_all_ages()
+        prev_opt_sigma = opt_sigma
+        opt_sigma += dx
+        f2 = estimate_all_ages()
+        derivative = (f2 - f1)/dx
+        print('derivative = ', + str(derivative))
+        opt_sigma += derivative*gamma
+        # gamma = ((opt_sigma-dx) - prev_opt_sigma)/(derivative - prev_der)
+        precision = abs(prev_val - f1)
+        prev_val = f1
+        prev_der = derivative
+
+    print(precision)
+    print(f1)
+    print(opt_sigma)
+    """
+    percents = []
+    for i in numpy.linspace(1, 10, 100):
+        opt_sigma = i
+        percents.append(estimate_all_ages())
+
+    plt.plot(numpy.linspace(1, 10, 100), percents)
+    plt.show()
+    """
 # print(estimate_age(4))
 # x = list(range(81))
 # plt.plot(x, K)
