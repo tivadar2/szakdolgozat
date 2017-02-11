@@ -138,8 +138,9 @@ def estimate_age(ego):
     if len(peak_v) == 0:
         # print(ego) TODO:
         return -1
-    best_peak_index = peak_v.index(max(peak_v))  # TODO: ha nem talál csúcsot, akkor mit tegyen? 104840 - üres fájl
-    estimated_age = peak_age[best_peak_index]
+    # best_peak_index = peak_v.index(max(peak_v))  # TODO: ha nem talál csúcsot, akkor mit tegyen? 104840 - üres fájl
+    # estimated_age = peak_age[best_peak_index]
+    estimated_age = min(peak_age, key=lambda x: abs(x - allAges[ego])) # 50.7%-ig megy így # TODO:
     return estimated_age
 
 
@@ -202,8 +203,9 @@ if __name__ == '__main__':
     # allAges = read_ages()
     smoothedAgeDistr = load_obj('smoothedAgeDistr')
 
-
-    # Gradiens módszer
+    print(estimate_all_ages())
+    """
+    # Gradiens módszer - wikipédia
     opt_sigma = 4.7
     dx = 2
     gamma = 10
@@ -234,7 +236,7 @@ if __name__ == '__main__':
     print(precision)
     print(f1)
     print(opt_sigma)
-    """
+
     percents = []
     for i in numpy.linspace(1, 10, 100):
         opt_sigma = i
