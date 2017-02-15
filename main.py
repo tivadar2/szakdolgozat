@@ -4,7 +4,7 @@ import math
 import pickle
 import matplotlib.pyplot as plt
 from os import listdir
-import numpy
+import numpy as np
 
 # Globális változók
 allAges = {}
@@ -71,6 +71,7 @@ own_exp = dict(own_exp)
 
 def gauss(x):
     return own_exp[int(x+0.5)]
+    # return math.exp(-x*x/(2*sigma**2))
 
 
 def make_histogram(ego):
@@ -133,14 +134,16 @@ def estimate_age(ego):
             h = K[x]
             w = get_fwhm(K, x)
             v = h / w
+            # if x-1 in range(1, 80) and x-2 in range(1, 80) and x+1 in range(1, 80) and x+2 in range(1, 80):
+            #    v = (K[x]-K[x-1]) + (K[x]-K[x+1]) + (K[x]-K[x+2]) + (K[x]-K[x-2])
             peak_v.append(v)
 
     if len(peak_v) == 0:
         # print(ego) TODO:
         return -1
-    # best_peak_index = peak_v.index(max(peak_v))  # TODO: ha nem talál csúcsot, akkor mit tegyen? 104840 - üres fájl
-    # estimated_age = peak_age[best_peak_index]
-    estimated_age = min(peak_age, key=lambda x: abs(x - allAges[ego])) # 50.7%-ig megy így # TODO:
+    best_peak_index = peak_v.index(max(peak_v))  # TODO: ha nem talál csúcsot, akkor mit tegyen? 104840 - üres fájl
+    estimated_age = peak_age[best_peak_index]
+    # estimated_age = min(peak_age, key=lambda x: abs(x - allAges[ego])) # 50.7%-ig megy így # TODO: csúcskiválasztás javítása
     return estimated_age
 
 
@@ -205,8 +208,51 @@ if __name__ == '__main__':
 
     print(estimate_all_ages())
     """
-    # Gradiens módszer - wikipédia
-    opt_sigma = 4.7
+    # Gradiens módszer - wikipédia 1 D
+    opt_sigma = 4.7     # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
+    dx = 2
+    gamma = 10
+
+    f1 = estimate_all_ages()
+    prev_opt_sigma = opt_sigma
+    opt_sigma += dx
+    f2 = estimate_all_ages()
+    derivative = (f2 - f1) / dx
+    opt_sigma += derivative * gamma
+    prev_val = f1
+    prev_der = derivative
+
+    precision = 1
+    while precision >= 0.00001:
+        f1 = estimate_all_ages()
+        prev_opt_sigma = opt_sigma
+        opt_sigma += dx
+        f2 = estimate_all_ages()
+        derivative = (f2 - f1)/dx
+        print('derivative = ', + str(derivative))
+        opt_sigma += derivative*gamma
+        # gamma = ((opt_sigma-dx) - prev_opt_sigma)/(derivative - prev_der)
+        precision = abs(prev_val - f1)
+        prev_val = f1
+        prev_der = derivative
+
+    print(precision)
+    print(f1)
+    print(opt_sigma)
+
+    percents = []
+    for i in numpy.linspace(1, 10, 100):
+        opt_sigma = i
+        percents.append(estimate_all_ages())
+
+    plt.plot(numpy.linspace(1, 10, 100), percents)
+    plt.show()
+    """
+
+    """
+    # Gradiens módszer - wikipédia több Dim
+    opts = np.array()     # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
+                          # sorrend:
     dx = 2
     gamma = 10
 
