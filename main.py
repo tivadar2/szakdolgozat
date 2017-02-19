@@ -5,6 +5,8 @@ import pickle
 import matplotlib.pyplot as plt
 from os import listdir
 import numpy as np
+from random import shuffle
+import time
 
 # Globális változók
 allAges = {}
@@ -13,8 +15,7 @@ egos = []
 smoothedAgeDistr = []
 
 # Beállítáok
-opt_sigma = 1
-opt_gSize = 5
+opts = np.array([5, 3, 1])
 
 
 def save_obj(obj, name):
@@ -92,12 +93,33 @@ def make_histogram(ego):
         for age in group_ages:
             sigma += (avg - age)**2
         sigma = math.sqrt(sigma/groupSize)
+        suly = 1
+        if sigma <= 3 and groupSize <= 5:
+            suly = opts[0]
+        elif 3 < sigma <= 6 and groupSize <= 5:
+            suly = opts[1]
+        elif 6 < sigma and groupSize <= 5:
+            suly = opts[2]
+        elif sigma <= 3 and 5 < groupSize <= 10:
+            suly = opts[3]
+        elif 3 < sigma <= 6 and 5 < groupSize <= 10:
+            suly = opts[4]
+        elif 6 < sigma and 5 < groupSize <= 10:
+            suly = opts[5]
+        elif sigma <= 3 and 10 < groupSize:
+            suly = opts[6]
+        elif 3 < sigma <= 6 and 10 < groupSize:
+            suly = opts[7]
+        elif 6 < sigma and 10 < groupSize:
+            suly = opts[8]
+
         for a in range(10, 81):
             # K[a] += gauss(a - avg)/smoothedAgeDistr[int(avg+0.5)-10]
             # K[a] += gauss(a - avg)
 
             # *gauss(groupSize - 3)
-            K[a] += gauss(a - avg)/(opt_sigma + sigma)     # TODO:
+            # K[a] += gauss(a - avg)/(opts[0] + sigma)*(1 + math.exp(-(a - opts[1])**2/(2*opts[2])))     # TODO:
+            K[a] += suly*gauss(a - avg)
     return K
 
 
@@ -178,24 +200,37 @@ def estimate_all_ages():
     dev = 0  # Szórás
     counter = 0
     pm2 = 0
-    for ego in egos:
+    shuffle(egos)
+    for ego in egos[:len(egos)//1]:
         estimated_age = estimate_age(ego)
         if estimated_age == -1:
             continue
         real_age = allAges[ego]
         diff = pow((estimated_age - real_age), 2)
-        dev += diff
+        # dev += diff
         if diff <= 4:
             pm2 += 1
         counter += 1
-        if counter % 100 == 0:
-            print(str(counter) + '/11000')
+        # if counter % 100 == 0:
+        #    print(str(counter) + '/11000')
 
-    dev /= len(egos)
-    dev = math.sqrt(dev)
+    # dev /= len(egos)
+    # dev = math.sqrt(dev)
     # print('deviation: ' + str(dev))
     # print('+-2: ' + str(pm2 / len(egos)))
-    return pm2/len(egos)
+    return pm2/(len(egos)//1)
+
+
+def calc_derivative(x, n):
+    grad = np.zeros(n)
+    f_0 = estimate_all_ages()
+    print("fitness: " + str(f_0))
+    dx = 1
+    for dim in range(n):
+        x[dim] += dx
+        grad[dim] = (estimate_all_ages() - f_0)/dx
+        x[dim] -= dx
+    return grad
 
 if __name__ == '__main__':
     # Betöltjük a dot fájlokat, amikben a csoportok vannak
@@ -206,7 +241,7 @@ if __name__ == '__main__':
     # allAges = read_ages()
     smoothedAgeDistr = load_obj('smoothedAgeDistr')
 
-    print(estimate_all_ages())
+    # print(estimate_all_ages())
     """
     # Gradiens módszer - wikipédia 1 D
     opt_sigma = 4.7     # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
@@ -249,46 +284,44 @@ if __name__ == '__main__':
     plt.show()
     """
 
-    """
     # Gradiens módszer - wikipédia több Dim
-    opts = np.array()     # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
-                          # sorrend:
-    dx = 2
-    gamma = 10
+    opts = np.array([2.24914737,  4.24753186, -0.88924789, 2.24914737,  4.24753186, -0.88924789, 2.24914737,  4.24753186, -0.88924789])     # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
+                          # sorrend: 1/(s + sigma)-ból az s, optimális group size, opt group size sigmája
+    gamma = 100
+    # fitness: 0.37551606533835935 - csak sigma súly
+    # grad = [8.97504936e-05   3.59001975e-04 - 1.79500987e-04]
+    # opts = [2.24914737  4.24753186 - 0.88924789]
 
-    f1 = estimate_all_ages()
-    prev_opt_sigma = opt_sigma
-    opt_sigma += dx
-    f2 = estimate_all_ages()
-    derivative = (f2 - f1) / dx
-    opt_sigma += derivative * gamma
-    prev_val = f1
-    prev_der = derivative
+    grad = calc_derivative(opts, 9)
+    prev_opts = opts
+    prev_grad = grad
+    opts = opts + grad * gamma
 
-    precision = 1
-    while precision >= 0.00001:
-        f1 = estimate_all_ages()
-        prev_opt_sigma = opt_sigma
-        opt_sigma += dx
-        f2 = estimate_all_ages()
-        derivative = (f2 - f1)/dx
-        print('derivative = ', + str(derivative))
-        opt_sigma += derivative*gamma
-        # gamma = ((opt_sigma-dx) - prev_opt_sigma)/(derivative - prev_der)
-        precision = abs(prev_val - f1)
-        prev_val = f1
-        prev_der = derivative
+    counter = 0
+    while np.linalg.norm(grad) >= 0.00001 or counter > 1000:
+        start = time.clock()
+        grad = calc_derivative(opts, 9)
+        # gamma = np.inner((opts - prev_opts), (grad - prev_grad)) / np.linalg.norm(grad - prev_grad)**2
+        prev_opts = opts
+        prev_grad = grad
+        print('grad = ' + str(grad))
+        print("opts = " + str(opts))
+        print("gamma: " + str(gamma))
+        opts = opts + grad * gamma
+        counter += 1
+        print("time:" + str(time.clock() - start) + "\n")
 
-    print(precision)
-    print(f1)
-    print(opt_sigma)
+    print(counter)
+    print(estimate_all_ages())
+    print(opts)
 
+    """
     percents = []
-    for i in numpy.linspace(1, 10, 100):
+    for i in np.linspace(1, 10, 100):
         opt_sigma = i
         percents.append(estimate_all_ages())
 
-    plt.plot(numpy.linspace(1, 10, 100), percents)
+    plt.plot(np.linspace(1, 10, 100), percents)
     plt.show()
     """
 # print(estimate_age(4))
