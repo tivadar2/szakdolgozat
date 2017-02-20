@@ -1,0 +1,41 @@
+\documentclass[12pt]{article}
+\usepackage[a4paper]{geometry}
+\usepackage[magyar]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{t1enc}
+\usepackage{amsmath}
+\usepackage{epstopdf}
+\usepackage{hyperref}
+\usepackage{indentfirst}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{cleveref}
+\usepackage{subcaption}
+\usepackage{multirow}
+\usepackage{setspace}
+\title{}
+\date{}
+\begin{document}
+\begin{titlepage}
+	\centering
+	{\scshape\LARGE Budapesti Műszaki és Gazdaságtudományi\\Egyetem \par}
+
+\end{titlepage}
+
+\onehalfspacing
+\section*{Szakdolgozat}
+\begin{itemize}
+	\item a TDK alapján megírtam a programot, ebből mennyit kell majd leírnom szakdolgozatba?
+	\item időzabáló rész a gauss görbe a konvolúciónál (maga a konvolúció elég sok idő) 20-30 s egy futás a kb. 11000 ego-ra
+	\item Gradiens módszer egy és több dimenzióban
+	\begin{itemize}
+		\item "zajos" a pm2 függvény, emiatt derivált számolásnál nagy "dx"-et kell választani
+		\item gamma helyes megválasztása, konstans vagy függ a gradienstől (a konstans működött)
+		\item először az $\dfrac{1}{s + \sigma}$ súlyt próbáltam, ahol s a paraméter, $\sigma$ pedig a csoport életkorainak szórása
+		\item 3 felé osztottam a csoport életkorainak szórása alapján a súlyfaktort 3 alatt, 3 és 6 közt és 6 felett, így futtatva a gradiens módszert a 6 feletti szórások súlyára negatívat kaptam -> lehet, hogy így több csúcs lesz a negatív súly miatt?
+	\end{itemize}
+\end{itemize}
+pm2 függvény - plusz mínusz 2 éven belüli becslések aránya, 0 és 1 közti szám \\ \\
+Margók mérete a latex alapbeállítása?
+\end{document}

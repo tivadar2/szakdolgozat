@@ -94,6 +94,7 @@ def make_histogram(ego):
             sigma += (avg - age)**2
         sigma = math.sqrt(sigma/groupSize)
         suly = 1
+        """
         if sigma <= 3 and groupSize <= 5:
             suly = opts[0]
         elif 3 < sigma <= 6 and groupSize <= 5:
@@ -112,14 +113,25 @@ def make_histogram(ego):
             suly = opts[7]
         elif 6 < sigma and 10 < groupSize:
             suly = opts[8]
+        """
+        if sigma <= 3:
+            suly = opts[0]
+        elif 3 < sigma <= 6:
+            suly = opts[1]
+        elif 6 < sigma:
+            suly = 0
 
-        for a in range(10, 81):
-            # K[a] += gauss(a - avg)/smoothedAgeDistr[int(avg+0.5)-10]
-            # K[a] += gauss(a - avg)
+        if sigma == 0:
+            for a in range(10, 81):
+                K[a] += gauss(a - avg)
+        else:
+            for a in range(10, 81):
+                # K[a] += gauss(a - avg)/smoothedAgeDistr[int(avg+0.5)-10]
+                # K[a] += gauss(a - avg)
 
-            # *gauss(groupSize - 3)
-            # K[a] += gauss(a - avg)/(opts[0] + sigma)*(1 + math.exp(-(a - opts[1])**2/(2*opts[2])))     # TODO:
-            K[a] += suly*gauss(a - avg)
+                # *gauss(groupSize - 3)
+                # K[a] += gauss(a - avg)/(opts[0] + sigma)*(1 + math.exp(-(a - opts[1])**2/(2*opts[2])))     # TODO:
+                K[a] += suly*math.exp(-math.pow(a - avg, 2) / (2 * math.pow(opts[2], 2)))
     return K
 
 
@@ -285,14 +297,14 @@ if __name__ == '__main__':
     """
 
     # Gradiens módszer - wikipédia több Dim
-    opts = np.array([2.24914737,  4.24753186, -0.88924789, 2.24914737,  4.24753186, -0.88924789, 2.24914737,  4.24753186, -0.88924789])     # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
+    opts = np.array([2.24914737,  4.24753186, 4])     # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
                           # sorrend: 1/(s + sigma)-ból az s, optimális group size, opt group size sigmája
     gamma = 100
     # fitness: 0.37551606533835935 - csak sigma súly
     # grad = [8.97504936e-05   3.59001975e-04 - 1.79500987e-04]
     # opts = [2.24914737  4.24753186 - 0.88924789]
 
-    grad = calc_derivative(opts, 9)
+    grad = calc_derivative(opts, 3)
     prev_opts = opts
     prev_grad = grad
     opts = opts + grad * gamma
@@ -300,7 +312,7 @@ if __name__ == '__main__':
     counter = 0
     while np.linalg.norm(grad) >= 0.00001 or counter > 1000:
         start = time.clock()
-        grad = calc_derivative(opts, 9)
+        grad = calc_derivative(opts, 3)
         # gamma = np.inner((opts - prev_opts), (grad - prev_grad)) / np.linalg.norm(grad - prev_grad)**2
         prev_opts = opts
         prev_grad = grad
