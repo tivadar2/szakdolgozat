@@ -13,8 +13,10 @@ allAges = {}
 groups_of_ego = {}
 egos = []
 smoothedAgeDistr = []
+devs = [0]*30
+osszes = 0
 
-# Beállítáok
+# Paraméterek
 opts = np.array([5, 3, 1])
 
 
@@ -87,12 +89,20 @@ def make_histogram(ego):
             group_ages.append(age)
         if len(group_ages) == 0:  # Ha mindegyik ember a csoportban 999 éves # TODO: működik?
             continue
+        realGroupSize = len(g)
         groupSize = len(group_ages)
         avg = sum(group_ages)/groupSize
         sigma = 0
         for age in group_ages:
             sigma += (avg - age)**2
         sigma = math.sqrt(sigma/groupSize)
+        # if sigma == 0:
+            # devs[0] += 1  # 589 ezer ilyen van!!!
+        global osszes
+        for i in range(30):
+            if i < sigma <= i+1:
+                devs[i] += 1
+                osszes += 1
         suly = 1
         """
         if sigma <= 3 and groupSize <= 5:
@@ -308,6 +318,16 @@ if __name__ == '__main__':
     prev_opts = opts
     prev_grad = grad
     opts = opts + grad * gamma
+
+    print(osszes)
+    integral = 0
+    for i in range(30):
+        for j in range(6):
+            if integral < (j+1)*100000 < integral + devs[i]:
+                print(str(j) + ": " + str(list(np.linspace(0.5, 29.5, 30))[i]))
+        integral += devs[i]
+    plt.plot(np.linspace(0.5, 29.5, 30), devs)
+    plt.show()
 
     counter = 0
     while np.linalg.norm(grad) >= 0.00001 or counter > 1000:
