@@ -5,7 +5,7 @@ import pickle
 import matplotlib.pyplot as plt
 from os import listdir
 import numpy as np
-from random import shuffle
+from random import shuffle, uniform
 import time
 
 # Globális változók
@@ -13,11 +13,9 @@ allAges = {}
 groups_of_ego = {}
 egos = []
 smoothedAgeDistr = []
-devs = [0]*30
-osszes = 0
 
 # Paraméterek
-opts = np.array([5, 3, 1])
+opts = np.array([1, 1, 1, 1, 1, 1, 1, 1, 4])
 
 
 def save_obj(obj, name):
@@ -77,6 +75,19 @@ def gauss(x):
     # return math.exp(-x*x/(2*sigma**2))
 
 
+class Group(object):
+    def __init__(self, group_size=0, group_deviation=0, real_group_size=0):
+        self.realGroupSize = real_group_size
+        self.groupSize = group_size
+        self.groupDeviation = group_deviation
+
+
+class Ego(object):
+    def __init__(self):
+        self.ID = 0
+        self.groups = []
+
+
 def make_histogram(ego):
     groups = groups_of_ego[ego]
     K = [0] * 81
@@ -98,11 +109,6 @@ def make_histogram(ego):
         sigma = math.sqrt(sigma/groupSize)
         # if sigma == 0:
             # devs[0] += 1  # 589 ezer ilyen van!!!
-        global osszes
-        for i in range(30):
-            if i < sigma <= i+1:
-                devs[i] += 1
-                osszes += 1
         suly = 1
         """
         if sigma <= 3 and groupSize <= 5:
@@ -124,12 +130,22 @@ def make_histogram(ego):
         elif 6 < sigma and 10 < groupSize:
             suly = opts[8]
         """
-        if sigma <= 3:
+        if sigma == 0:
             suly = opts[0]
-        elif 3 < sigma <= 6:
+        elif 0 < sigma <= 2.5:
             suly = opts[1]
-        elif 6 < sigma:
-            suly = 0
+        elif 2.5 < sigma <= 5:
+            suly = opts[3]
+        elif 5 < sigma <= 10:
+            suly = opts[4]
+        elif 10 < sigma <= 15:
+            suly = opts[5]
+        elif 15 < sigma <= 25:
+            suly = opts[6]
+        elif 25 < sigma:
+            suly = opts[7]
+
+        suly = abs(suly)
 
         if sigma == 0:
             for a in range(10, 81):
@@ -141,7 +157,7 @@ def make_histogram(ego):
 
                 # *gauss(groupSize - 3)
                 # K[a] += gauss(a - avg)/(opts[0] + sigma)*(1 + math.exp(-(a - opts[1])**2/(2*opts[2])))     # TODO:
-                K[a] += suly*math.exp(-math.pow(a - avg, 2) / (2 * math.pow(opts[2], 2)))
+                K[a] += suly*math.exp(-math.pow(a - avg, 2) / (2 * math.pow(opts[8], 2)))
     return K
 
 
@@ -263,7 +279,41 @@ if __name__ == '__main__':
     # allAges = read_ages()
     smoothedAgeDistr = load_obj('smoothedAgeDistr')
 
-    # print(estimate_all_ages())
+    # SA
+    opts = np.array([-1.8555064,  -1.01198333,  1.1569885,   1.71169165,  0.31267486,  0.20642848,
+                     0.50099767, -0.92799075,  2.77660236])
+    # opts = np.array([1, 1, 1, 1, 1, 1, 1, 1, 4])  # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
+    E = estimate_all_ages()
+
+    prev_opts = opts
+    prev_E = E
+
+    T = 0.001
+    while T > 0.000001:
+        d_opts = np.array([uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1),
+                         uniform(-1, 1), uniform(-1, 1), uniform(-1, 1)])
+        d_opts = d_opts/np.linalg.norm(opts)
+        opts = opts + d_opts
+        E = estimate_all_ages()
+        print(opts)
+        print("E = " + str(E))
+        if E > prev_E:
+            prev_opts = opts
+            prev_E = E
+            print("fel")
+        else:
+            p = math.exp((E-prev_E)/T)
+            if uniform(0, 1) <= p:
+                prev_opts = opts
+                prev_E = E
+                print("le " + str(p))
+            else:
+                opts = opts - d_opts
+                print("újra " + str(p))
+                # pass # nem csinál semmit, újra random
+        print("T = " + str(T) + "\n")
+        T -= 0.00005
+
     """
     # Gradiens módszer - wikipédia 1 D
     opt_sigma = 4.7     # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
@@ -306,33 +356,24 @@ if __name__ == '__main__':
     plt.show()
     """
 
+    """
     # Gradiens módszer - wikipédia több Dim
-    opts = np.array([2.24914737,  4.24753186, 4])     # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
+    opts = np.array([1, 1, 1, 1, 1, 1, 1, 1, 4])     # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
                           # sorrend: 1/(s + sigma)-ból az s, optimális group size, opt group size sigmája
     gamma = 100
     # fitness: 0.37551606533835935 - csak sigma súly
     # grad = [8.97504936e-05   3.59001975e-04 - 1.79500987e-04]
     # opts = [2.24914737  4.24753186 - 0.88924789]
 
-    grad = calc_derivative(opts, 3)
+    grad = calc_derivative(opts, 9)
     prev_opts = opts
     prev_grad = grad
     opts = opts + grad * gamma
 
-    print(osszes)
-    integral = 0
-    for i in range(30):
-        for j in range(6):
-            if integral < (j+1)*100000 < integral + devs[i]:
-                print(str(j) + ": " + str(list(np.linspace(0.5, 29.5, 30))[i]))
-        integral += devs[i]
-    plt.plot(np.linspace(0.5, 29.5, 30), devs)
-    plt.show()
-
     counter = 0
     while np.linalg.norm(grad) >= 0.00001 or counter > 1000:
         start = time.clock()
-        grad = calc_derivative(opts, 3)
+        grad = calc_derivative(opts, 9)
         # gamma = np.inner((opts - prev_opts), (grad - prev_grad)) / np.linalg.norm(grad - prev_grad)**2
         prev_opts = opts
         prev_grad = grad
@@ -346,6 +387,7 @@ if __name__ == '__main__':
     print(counter)
     print(estimate_all_ages())
     print(opts)
+    """
 
     """
     percents = []
