@@ -5,6 +5,7 @@ import pickle
 import matplotlib.pyplot as plt
 from os import listdir
 import numpy as np
+import sys
 from random import shuffle, uniform
 import time
 
@@ -13,6 +14,7 @@ allAges = {}
 groups_of_ego = {}
 egos = []
 smoothedAgeDistr = []
+class_egos = []
 
 # Paraméterek
 opts = np.array([1, 1, 1, 1, 1, 1, 1, 1, 4])
@@ -76,40 +78,50 @@ def gauss(x):
 
 
 class Group(object):
-    def __init__(self, group_size=0, group_deviation=0, real_group_size=0):
+    def __init__(self, ages=(), group_size=-1, average_age=-1, deviation=-1, real_group_size=-1):
+        self.ages = ages
         self.realGroupSize = real_group_size
         self.groupSize = group_size
-        self.groupDeviation = group_deviation
+        self.deviation = deviation
+        self.averageAge = average_age
+
+    def calculate_stats(self):
+        average = 0
+        wrong_ages_counter = 0
+        for age in self.ages:
+            if age == 999 or age == 555:
+                wrong_ages_counter += 1
+            else:
+                average += age
+
+        self.realGroupSize = len(ages)
+        self.groupSize = self.realGroupSize - wrong_ages_counter
+        if self.groupSize == 0:
+            return      # Nem ismerjük senkinek sem a korát a csoportban
+        self.averageAge = average/self.groupSize
+        deviation = 0
+        for age in self.ages:
+            if not (age == 999 or age == 555):
+                deviation += (self.averageAge - age)**2
+
+        self.deviation = deviation/self.groupSize
 
 
 class Ego(object):
-    def __init__(self):
-        self.ID = 0
+    def __init__(self, id, real_age):
+        self.ID = id
+        self.realAge = real_age
         self.groups = []
 
 
 def make_histogram(ego):
-    groups = groups_of_ego[ego]
-    K = [0] * 81
-    for g in groups:
-        group_ages = []
-        for ID in g:
-            age = allAges[ID]
-            if age == 999 or age == 555: # TODO: ez mi?
-                continue
-            group_ages.append(age)
-        if len(group_ages) == 0:  # Ha mindegyik ember a csoportban 999 éves # TODO: működik?
-            continue
-        realGroupSize = len(g)
-        groupSize = len(group_ages)
-        avg = sum(group_ages)/groupSize
-        sigma = 0
-        for age in group_ages:
-            sigma += (avg - age)**2
-        sigma = math.sqrt(sigma/groupSize)
+    K = np.zeros(81)
+    x = np.linspace(0, 80, 81)
+    matrix = np.zeros((len(ego.groups), 81))
+    for num, g in enumerate(ego.groups):
         # if sigma == 0:
-            # devs[0] += 1  # 589 ezer ilyen van!!!
-        suly = 1
+        # devs[0] += 1  # 589 ezer ilyen van!!!
+        # sigma = g.deviation
         """
         if sigma <= 3 and groupSize <= 5:
             suly = opts[0]
@@ -130,6 +142,8 @@ def make_histogram(ego):
         elif 6 < sigma and 10 < groupSize:
             suly = opts[8]
         """
+
+        suly = 1
         if sigma == 0:
             suly = opts[0]
         elif 0 < sigma <= 2.5:
@@ -145,19 +159,9 @@ def make_histogram(ego):
         elif 25 < sigma:
             suly = opts[7]
 
-        suly = abs(suly)
+        matrix[num] = suly*np.exp(-np.square(x - g.averageAge) / (2 * opts[8]))
 
-        if sigma == 0:
-            for a in range(10, 81):
-                K[a] += gauss(a - avg)
-        else:
-            for a in range(10, 81):
-                # K[a] += gauss(a - avg)/smoothedAgeDistr[int(avg+0.5)-10]
-                # K[a] += gauss(a - avg)
-
-                # *gauss(groupSize - 3)
-                # K[a] += gauss(a - avg)/(opts[0] + sigma)*(1 + math.exp(-(a - opts[1])**2/(2*opts[2])))     # TODO:
-                K[a] += suly*math.exp(-math.pow(a - avg, 2) / (2 * math.pow(opts[8], 2)))
+    K = matrix.sum(axis=0)
     return K
 
 
@@ -235,16 +239,15 @@ def make_smooth_age_distr():
 
 
 def estimate_all_ages():
-    dev = 0  # Szórás
+    # dev = 0  # Szórás
     counter = 0
     pm2 = 0
-    shuffle(egos)
-    for ego in egos[:len(egos)//1]:
+    # shuffle(class_egos)
+    for ego in class_egos:
         estimated_age = estimate_age(ego)
         if estimated_age == -1:
             continue
-        real_age = allAges[ego]
-        diff = pow((estimated_age - real_age), 2)
+        diff = pow((estimated_age - ego.realAge), 2)
         # dev += diff
         if diff <= 4:
             pm2 += 1
@@ -256,7 +259,7 @@ def estimate_all_ages():
     # dev = math.sqrt(dev)
     # print('deviation: ' + str(dev))
     # print('+-2: ' + str(pm2 / len(egos)))
-    return pm2/(len(egos)//1)
+    return pm2/len(class_egos)
 
 
 def calc_derivative(x, n):
@@ -277,11 +280,31 @@ if __name__ == '__main__':
     # Betöltjük az összes ember korát
     allAges = load_obj('allAges')
     # allAges = read_ages()
-    smoothedAgeDistr = load_obj('smoothedAgeDistr')
+    # smoothedAgeDistr = load_obj('smoothedAgeDistr')
+
+    for ego in egos:
+        class_ego = Ego(ego, allAges[ego])
+        groups = []
+        for g in groups_of_ego[ego]:
+            ages = []
+            for id in g:
+                ages.append(allAges[id])
+            class_group = Group(ages)
+            class_group.calculate_stats()
+            if class_group.groupSize != 0: # Ha nem ismerjük egyik ember korát sem a csoportban, akkor a csoportot nem
+                groups.append(class_group) # vesszük figyelembe
+        class_ego.groups = groups
+        class_egos.append(class_ego)
+
+    # start = time.time()
+    # print(estimate_all_ages())
+    # end = time.time()
+    # print(end-start)
+
 
     # SA
-    opts = np.array([-1.8555064,  -1.01198333,  1.1569885,   1.71169165,  0.31267486,  0.20642848,
-                     0.50099767, -0.92799075,  2.77660236])
+    opts = np.array([1,  1,  1,   1,  1,  1,
+                     1, 1,  3])
     # opts = np.array([1, 1, 1, 1, 1, 1, 1, 1, 4])  # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
     E = estimate_all_ages()
 
@@ -289,7 +312,7 @@ if __name__ == '__main__':
     prev_E = E
 
     T = 0.001
-    while T > 0.000001:
+    while T > 0:
         d_opts = np.array([uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1),
                          uniform(-1, 1), uniform(-1, 1), uniform(-1, 1)])
         d_opts = d_opts/np.linalg.norm(opts)
@@ -312,7 +335,7 @@ if __name__ == '__main__':
                 print("újra " + str(p))
                 # pass # nem csinál semmit, újra random
         print("T = " + str(T) + "\n")
-        T -= 0.00005
+        T -= 0.000001
 
     """
     # Gradiens módszer - wikipédia 1 D
