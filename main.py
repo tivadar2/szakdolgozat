@@ -8,6 +8,12 @@ import numpy as np
 import sys
 from random import shuffle, uniform
 import time
+import pycuda.gpuarray as gpuarray
+import pycuda.autoinit
+import pycuda.cumath
+import skcuda.linalg
+import skcuda.misc
+skcuda.linalg.init()
 
 # Globális változók
 allAges = {}
@@ -115,9 +121,11 @@ class Ego(object):
 
 
 def make_histogram(ego):
-    K = np.zeros(81)
-    x = np.linspace(0, 80, 81)
-    matrix = np.zeros((len(ego.groups), 81))
+    K = np.zeros(81).astype(np.float32)
+    gpu_K = gpuarray.to_gpu(K)
+    x = np.linspace(0, 80, 81).astype(np.float32)
+    matrix = np.zeros((len(ego.groups), 81)).astype(np.float32)
+    gpu_ones = gpuarray.to_gpu(np.ones(len(ego.groups)).astype(np.float32))
     for num, g in enumerate(ego.groups):
         # if sigma == 0:
         # devs[0] += 1  # 589 ezer ilyen van!!!
@@ -159,9 +167,17 @@ def make_histogram(ego):
         elif 25 < sigma:
             suly = opts[7]
 
-        matrix[num] = suly*np.exp(-np.square(x - g.averageAge) / (2 * opts[8]))
+        matrix[num] = x - g.averageAge
+        # matrix[num] = suly*pycuda.cumath.exp(
+        # -skcuda.misc.multiply(x - g.averageAge, x - g.averageAge) / (2 * opts[8]))
 
-    K = matrix.sum(axis=0)
+    gpu_mat = gpuarray.to_gpu(matrix)
+    szorzo = np.float32((1/(2*opts[8])))
+    gpu_mat = pycuda.cumath.exp(-skcuda.misc.multiply(gpu_mat, gpu_mat)*szorzo)
+    # K = gpuarray.sum(gpu_mat).get()
+    K = skcuda.linalg.dot(skcuda.linalg.transpose(gpu_mat), gpu_ones).get()
+    # wait = input("PRESS ENTER TO CONTINUE.")
+    # K = matrix.sum(axis=0)
     return K
 
 
@@ -294,14 +310,16 @@ if __name__ == '__main__':
             if class_group.groupSize != 0: # Ha nem ismerjük egyik ember korát sem a csoportban, akkor a csoportot nem
                 groups.append(class_group) # vesszük figyelembe
         class_ego.groups = groups
+        if not groups:  # is_empty nincs egy csoportja sem
+            continue
         class_egos.append(class_ego)
 
-    # start = time.time()
-    # print(estimate_all_ages())
-    # end = time.time()
-    # print(end-start)
+    start = time.time()
+    print(estimate_all_ages())
+    end = time.time()
+    print(end-start)
 
-
+    """
     # SA
     opts = np.array([1,  1,  1,   1,  1,  1,
                      1, 1,  3])
@@ -336,6 +354,7 @@ if __name__ == '__main__':
                 # pass # nem csinál semmit, újra random
         print("T = " + str(T) + "\n")
         T -= 0.000001
+    """
 
     """
     # Gradiens módszer - wikipédia 1 D
