@@ -2,18 +2,14 @@
 
 import math
 import pickle
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from os import listdir
 import numpy as np
 import sys
-from random import shuffle, uniform
+from random import shuffle, uniform, choice
+import random
 import time
-import pycuda.gpuarray as gpuarray
-import pycuda.autoinit
-import pycuda.cumath
-import skcuda.linalg
-import skcuda.misc
-skcuda.linalg.init()
+# from multiprocessing.dummy import Pool as ThreadPool
 
 # Globális változók
 allAges = {}
@@ -23,7 +19,7 @@ smoothedAgeDistr = []
 class_egos = []
 
 # Paraméterek
-opts = np.array([1, 1, 1, 1, 1, 1, 1, 1, 4])
+params = np.array([1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1])
 
 
 def save_obj(obj, name):
@@ -100,7 +96,7 @@ class Group(object):
             else:
                 average += age
 
-        self.realGroupSize = len(ages)
+        self.realGroupSize = len(self.ages)
         self.groupSize = self.realGroupSize - wrong_ages_counter
         if self.groupSize == 0:
             return      # Nem ismerjük senkinek sem a korát a csoportban
@@ -121,63 +117,60 @@ class Ego(object):
 
 
 def make_histogram(ego):
-    K = np.zeros(81).astype(np.float32)
-    gpu_K = gpuarray.to_gpu(K)
-    x = np.linspace(0, 80, 81).astype(np.float32)
-    matrix = np.zeros((len(ego.groups), 81)).astype(np.float32)
-    gpu_ones = gpuarray.to_gpu(np.ones(len(ego.groups)).astype(np.float32))
+    K = np.zeros(81)
+    x = np.linspace(0, 80, 81)
+    matrix = np.zeros((len(ego.groups), 81))
     for num, g in enumerate(ego.groups):
         # if sigma == 0:
         # devs[0] += 1  # 589 ezer ilyen van!!!
-        # sigma = g.deviation
-        """
-        if sigma <= 3 and groupSize <= 5:
-            suly = opts[0]
-        elif 3 < sigma <= 6 and groupSize <= 5:
-            suly = opts[1]
-        elif 6 < sigma and groupSize <= 5:
-            suly = opts[2]
-        elif sigma <= 3 and 5 < groupSize <= 10:
-            suly = opts[3]
-        elif 3 < sigma <= 6 and 5 < groupSize <= 10:
-            suly = opts[4]
-        elif 6 < sigma and 5 < groupSize <= 10:
-            suly = opts[5]
-        elif sigma <= 3 and 10 < groupSize:
-            suly = opts[6]
-        elif 3 < sigma <= 6 and 10 < groupSize:
-            suly = opts[7]
-        elif 6 < sigma and 10 < groupSize:
-            suly = opts[8]
-        """
+        sigma = g.deviation
+        groupSize = g.groupSize
 
+        if sigma == 0 and groupSize <= 1:
+            suly = params[9]
+        elif sigma == 0 and groupSize > 1:
+            suly = params[10]
+        elif 0 < sigma <= 3 and groupSize <= 5:
+            suly = params[0]
+        elif 3 < sigma <= 6 and groupSize <= 5:
+            suly = params[1]
+        elif 6 < sigma and groupSize <= 5:
+            suly = params[2]
+        elif 0 < sigma <= 3 and 5 < groupSize <= 10:
+            suly = params[3]
+        elif 3 < sigma <= 6 and 5 < groupSize <= 10:
+            suly = params[4]
+        elif 6 < sigma and 5 < groupSize <= 10:
+            suly = params[5]
+        elif 0 < sigma <= 3 and 10 < groupSize:
+            suly = params[6]
+        elif 3 < sigma <= 6 and 10 < groupSize:
+            suly = params[7]
+        elif 6 < sigma and 10 < groupSize:
+            suly = params[8]
+
+
+        """
         suly = 1
         if sigma == 0:
-            suly = opts[0]
+            suly = params[0]
         elif 0 < sigma <= 2.5:
-            suly = opts[1]
+            suly = params[1]
         elif 2.5 < sigma <= 5:
-            suly = opts[3]
+            suly = params[3]
         elif 5 < sigma <= 10:
-            suly = opts[4]
+            suly = params[4]
         elif 10 < sigma <= 15:
-            suly = opts[5]
+            suly = params[5]
         elif 15 < sigma <= 25:
-            suly = opts[6]
+            suly = params[6]
         elif 25 < sigma:
-            suly = opts[7]
+            suly = params[7]
+        """
 
-        matrix[num] = x - g.averageAge
-        # matrix[num] = suly*pycuda.cumath.exp(
-        # -skcuda.misc.multiply(x - g.averageAge, x - g.averageAge) / (2 * opts[8]))
+        matrix[num] = suly*np.exp(-np.square(x - g.averageAge) / (2 * params[8]))
 
-    gpu_mat = gpuarray.to_gpu(matrix)
-    szorzo = np.float32((1/(2*opts[8])))
-    gpu_mat = pycuda.cumath.exp(-skcuda.misc.multiply(gpu_mat, gpu_mat)*szorzo)
-    # K = gpuarray.sum(gpu_mat).get()
-    K = skcuda.linalg.dot(skcuda.linalg.transpose(gpu_mat), gpu_ones).get()
-    # wait = input("PRESS ENTER TO CONTINUE.")
-    # K = matrix.sum(axis=0)
+    K = matrix.sum(axis=0)
     return K
 
 
@@ -259,6 +252,10 @@ def estimate_all_ages():
     counter = 0
     pm2 = 0
     # shuffle(class_egos)
+    # pool = ThreadPool(10)
+    # results = pool.map(estimate_age, class_egos)
+    # pool.close()
+    # pool.join()
     for ego in class_egos:
         estimated_age = estimate_age(ego)
         if estimated_age == -1:
@@ -270,7 +267,6 @@ def estimate_all_ages():
         counter += 1
         # if counter % 100 == 0:
         #    print(str(counter) + '/11000')
-
     # dev /= len(egos)
     # dev = math.sqrt(dev)
     # print('deviation: ' + str(dev))
@@ -289,15 +285,84 @@ def calc_derivative(x, n):
         x[dim] -= dx
     return grad
 
+
+class Individual(object):
+    def __init__(self, n=0, params=None, fitness=0):
+        if params is None:  # random paraméterek
+            self.params = np.random.uniform(0, 5, n)
+        else:
+            self.params = params
+            self.fitness = fitness
+
+    def calc_fitness(self):
+        global params
+        params = self.params
+        self.fitness = estimate_all_ages()
+
+
+class Population(object):
+    def __init__(self, n=0, individuals=None):
+        if individuals is None:
+            self.individuals = [Individual(n=11) for i in range(n)]
+            self.n = n
+        else:
+            self.individuals = individuals
+            self.n = len(individuals)
+        self.generation = 1
+
+    def calc_fitness(self):
+        for indiv in self.individuals:
+            indiv.calc_fitness()
+
+    def cross(self, parent1, parent2):
+        number_of_params = len(parent1.params)
+        params = np.zeros(number_of_params)
+        for i in range(number_of_params):
+            params[i] = choice([parent1.params[i], parent2.params[i]])
+        child = Individual(params=params)
+        self.individuals.append(child)
+
+    def crossover(self):
+        all_individual = list(range(len(self.individuals)))
+        shuffle(all_individual)
+        while len(all_individual) != 0:
+            parent_a = self.individuals[all_individual.pop()]
+            parent_b = self.individuals[all_individual.pop()]
+            self.cross(parent_a, parent_b)
+
+    def mutation(self):
+        for indiv in self.individuals:
+            for i in range(len(indiv.params)):
+                if random.random() < 0.1:
+                    indiv.params[i] += np.random.normal(scale=0.5)
+
+    def selection(self):
+        self.individuals.sort(key=lambda individual: individual.fitness, reverse=True)
+        del self.individuals[self.n:]
+
+    def evolve(self):
+        self.crossover()
+        self.mutation()
+        self.calc_fitness()
+        self.selection()
+
+        print("Generation " + str(self.generation))
+        for indiv in self.individuals:
+            print("fitness: " + str(indiv.fitness) + "  params: " + str(indiv.params))
+        print('\n')
+        self.generation += 1
+
+
 if __name__ == '__main__':
     # Betöltjük a dot fájlokat, amikben a csoportok vannak
-    groups_of_ego = load_obj('groups_of_ego')
+    # groups_of_ego = load_obj('groups_of_ego')
     # groups_of_ego = read_groups_from_dots()
     # Betöltjük az összes ember korát
-    allAges = load_obj('allAges')
+    # allAges = load_obj('allAges')
     # allAges = read_ages()
     # smoothedAgeDistr = load_obj('smoothedAgeDistr')
 
+    """
     for ego in egos:
         class_ego = Ego(ego, allAges[ego])
         groups = []
@@ -313,43 +378,50 @@ if __name__ == '__main__':
         if not groups:  # is_empty nincs egy csoportja sem
             continue
         class_egos.append(class_ego)
+    """
+    class_egos = load_obj('class_egos')
 
-    start = time.time()
-    print(estimate_all_ages())
-    end = time.time()
-    print(end-start)
+    # start = time.time()
+    # print(estimate_all_ages())
+    # end = time.time()
+    # print(end-start)
+
+    # GA
+    population = Population(10)
+    while True:
+        population.evolve()
 
     """
     # SA
-    opts = np.array([1,  1,  1,   1,  1,  1,
+    params = np.array([1,  1,  1,   1,  1,  1,
                      1, 1,  3])
-    # opts = np.array([1, 1, 1, 1, 1, 1, 1, 1, 4])  # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
+    # params = np.array([1, 1, 1, 1, 1, 1, 1, 1, 4])  # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
     E = estimate_all_ages()
 
-    prev_opts = opts
+    prev_params = params
     prev_E = E
 
     T = 0.001
     while T > 0:
-        d_opts = np.array([uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1),
+        d_params = np.array([uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1),
                          uniform(-1, 1), uniform(-1, 1), uniform(-1, 1)])
-        d_opts = d_opts/np.linalg.norm(opts)
-        opts = opts + d_opts
+        d_params = d_params/np.linalg.norm(params)
+        params = params + d_params
         E = estimate_all_ages()
-        print(opts)
+        print(params)
         print("E = " + str(E))
         if E > prev_E:
-            prev_opts = opts
+            prev_params = params
             prev_E = E
             print("fel")
         else:
             p = math.exp((E-prev_E)/T)
             if uniform(0, 1) <= p:
-                prev_opts = opts
+                prev_params = params
                 prev_E = E
                 print("le " + str(p))
             else:
-                opts = opts - d_opts
+                params = params - d_params
                 print("újra " + str(p))
                 # pass # nem csinál semmit, újra random
         print("T = " + str(T) + "\n")
@@ -400,35 +472,35 @@ if __name__ == '__main__':
 
     """
     # Gradiens módszer - wikipédia több Dim
-    opts = np.array([1, 1, 1, 1, 1, 1, 1, 1, 4])     # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
+    params = np.array([1, 1, 1, 1, 1, 1, 1, 1, 4])     # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
                           # sorrend: 1/(s + sigma)-ból az s, optimális group size, opt group size sigmája
     gamma = 100
     # fitness: 0.37551606533835935 - csak sigma súly
     # grad = [8.97504936e-05   3.59001975e-04 - 1.79500987e-04]
-    # opts = [2.24914737  4.24753186 - 0.88924789]
+    # params = [2.24914737  4.24753186 - 0.88924789]
 
-    grad = calc_derivative(opts, 9)
-    prev_opts = opts
+    grad = calc_derivative(params, 9)
+    prev_params = params
     prev_grad = grad
-    opts = opts + grad * gamma
+    params = params + grad * gamma
 
     counter = 0
     while np.linalg.norm(grad) >= 0.00001 or counter > 1000:
         start = time.clock()
-        grad = calc_derivative(opts, 9)
-        # gamma = np.inner((opts - prev_opts), (grad - prev_grad)) / np.linalg.norm(grad - prev_grad)**2
-        prev_opts = opts
+        grad = calc_derivative(params, 9)
+        # gamma = np.inner((params - prev_params), (grad - prev_grad)) / np.linalg.norm(grad - prev_grad)**2
+        prev_params = params
         prev_grad = grad
         print('grad = ' + str(grad))
-        print("opts = " + str(opts))
+        print("params = " + str(params))
         print("gamma: " + str(gamma))
-        opts = opts + grad * gamma
+        params = params + grad * gamma
         counter += 1
         print("time:" + str(time.clock() - start) + "\n")
 
     print(counter)
     print(estimate_all_ages())
-    print(opts)
+    print(params)
     """
 
     """
