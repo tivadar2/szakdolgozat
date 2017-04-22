@@ -2,34 +2,18 @@
 
 import math
 import pickle
-# import matplotlib.pyplot as plt
-from os import listdir
+import matplotlib.pyplot as plt
 import numpy as np
 import sys
-from random import shuffle, uniform, choice
-import random
 import time
-# from multiprocessing.dummy import Pool as ThreadPool
-
-# Globális változók
-allAges = {}
-groups_of_ego = {}
-egos = []
-smoothedAgeDistr = []
-class_egos = []
-
-# Paraméterek
-params = np.array([1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1])
+from random import uniform
+from genetic import Population
+import cProfile
+import numexpr as ne
 
 
-def save_obj(obj, name):
-    with open('obj/' + name + '.pkl', 'wb+') as f:
-        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
-
-
-def load_obj(name):
-    with open('obj/' + name + '.pkl', 'rb') as f:
-        return pickle.load(f)
+def get_nice_string(list_or_iterator):
+    return "[" + ", ".join( str(x) for x in list_or_iterator) + "]"
 
 
 def read_ages():
@@ -64,6 +48,13 @@ def read_groups(ego):
     del file
     return groups
 
+"""
+files = listdir('60-69')
+for filename in files:
+    if '_out.dot' in filename:
+        ego = int(''.join(list(filter(str.isdigit, filename))))
+        egos.append(ego)
+"""
 # Saját exp
 own_exp = []
 sigma = 2
@@ -77,6 +68,16 @@ own_exp = dict(own_exp)
 def gauss(x):
     return own_exp[int(x+0.5)]
     # return math.exp(-x*x/(2*sigma**2))
+
+
+def save_obj(obj, name):
+    with open('obj/' + name + '.pkl', 'wb+') as f:
+        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
+
+def load_obj(name):
+    with open('obj/' + name + '.pkl', 'rb') as f:
+        return pickle.load(f)
 
 
 class Group(object):
@@ -116,392 +117,249 @@ class Ego(object):
         self.groups = []
 
 
-def make_histogram(ego):
-    K = np.zeros(81)
-    x = np.linspace(0, 80, 81)
-    matrix = np.zeros((len(ego.groups), 81))
-    for num, g in enumerate(ego.groups):
-        # if sigma == 0:
-        # devs[0] += 1  # 589 ezer ilyen van!!!
-        sigma = g.deviation
-        groupSize = g.groupSize
+class MyApplication(object):
+    def __init__(self):
+        # Globális változók
+        self.allAges = {}
+        self.groups_of_ego = {}
+        self.egos = []
+        self.smoothedAgeDistr = []
+        self.class_egos = []
+        self.class_egos = load_obj('class_egos')
 
-        if sigma == 0 and groupSize <= 1:
-            suly = params[9]
-        elif sigma == 0 and groupSize > 1:
-            suly = params[10]
-        elif 0 < sigma <= 3 and groupSize <= 5:
-            suly = params[0]
-        elif 3 < sigma <= 6 and groupSize <= 5:
-            suly = params[1]
-        elif 6 < sigma and groupSize <= 5:
-            suly = params[2]
-        elif 0 < sigma <= 3 and 5 < groupSize <= 10:
-            suly = params[3]
-        elif 3 < sigma <= 6 and 5 < groupSize <= 10:
-            suly = params[4]
-        elif 6 < sigma and 5 < groupSize <= 10:
-            suly = params[5]
-        elif 0 < sigma <= 3 and 10 < groupSize:
-            suly = params[6]
-        elif 3 < sigma <= 6 and 10 < groupSize:
-            suly = params[7]
-        elif 6 < sigma and 10 < groupSize:
-            suly = params[8]
+        # Paraméterek
+        self.params = np.array([1, 1, 1, 1, 1, 1, 1, 1, 10, 1, 1])
 
+    def make_histogram(self, ego):
+        x = np.linspace(0, 80, 81)
+        matrix = np.empty((len(ego.groups), 81))
+        for num, g in enumerate(ego.groups):
+            # if sigma == 0:
+            # devs[0] += 1  # 589 ezer ilyen van!!!
+            sigma = g.deviation
+            groupSize = g.groupSize
 
-        """
-        suly = 1
-        if sigma == 0:
-            suly = params[0]
-        elif 0 < sigma <= 2.5:
-            suly = params[1]
-        elif 2.5 < sigma <= 5:
-            suly = params[3]
-        elif 5 < sigma <= 10:
-            suly = params[4]
-        elif 10 < sigma <= 15:
-            suly = params[5]
-        elif 15 < sigma <= 25:
-            suly = params[6]
-        elif 25 < sigma:
-            suly = params[7]
-        """
+            if sigma == 0 and groupSize <= 1:
+                suly = self.params[9]
+            elif sigma == 0 and groupSize > 1:
+                suly = self.params[10]
+            elif 0 < sigma <= 3 and groupSize <= 5:
+                suly = self.params[0]
+            elif 3 < sigma <= 6 and groupSize <= 5:
+                suly = self.params[1]
+            elif 6 < sigma and groupSize <= 5:
+                suly = self.params[2]
+            elif 0 < sigma <= 3 and 5 < groupSize <= 10:
+                suly = self.params[3]
+            elif 3 < sigma <= 6 and 5 < groupSize <= 10:
+                suly = self.params[4]
+            elif 6 < sigma and 5 < groupSize <= 10:
+                suly = self.params[5]
+            elif 0 < sigma <= 3 and 10 < groupSize:
+                suly = self.params[6]
+            elif 3 < sigma <= 6 and 10 < groupSize:
+                suly = self.params[7]
+            elif 6 < sigma and 10 < groupSize:
+                suly = self.params[8]
 
-        matrix[num] = suly*np.exp(-np.square(x - g.averageAge) / (2 * params[8]))
+            matrix[num] = suly*np.exp(-np.square(x - g.averageAge) / (2 * self.params[8]))
 
-    K = matrix.sum(axis=0)
-    return K
+        K = matrix.sum(axis=0)
+        return K
 
+    def get_fwhm(self, hist, age):  # TODO: Ezen még lehetne javítani
+        half_max = hist[age] / 2
+        left_half = 0
+        right_half = 100
+        for i in range(1, 100):  # Megkeresi a bal félérték helyét
+            if age - i == 0:  # Túlment az index
+                left_half = age - i
+                break
+            if hist[age - i] < half_max:
+                left_half = age - i
+                break
+        for i in range(1, 100):  # Megkeresi a jobb félérték helyét
+            if age + i == 80:  # Túlment az index
+                left_half = age + i
+                break
+            if hist[age + i] < half_max:
+                right_half = age + i
+                break
+        fwhm = right_half - left_half
+        return fwhm
 
-def get_fwhm(hist, age):  # TODO: Ezen még lehetne javítani
-    half_max = hist[age] / 2
-    left_half = 0
-    right_half = 100
-    for i in range(1, 100):  # Megkeresi a bal félérték helyét
-        if age - i == 0:  # Túlment az index
-            left_half = age - i
-            break
-        if hist[age - i] < half_max:
-            left_half = age - i
-            break
-    for i in range(1, 100):  # Megkeresi a jobb félérték helyét
-        if age + i == 80:  # Túlment az index
-            left_half = age + i
-            break
-        if hist[age + i] < half_max:
-            right_half = age + i
-            break
-    fwhm = right_half - left_half
-    return fwhm
+    def estimate_age(self, ego):
+        K = self.make_histogram(ego)
 
+        peak_age = []
+        peak_v = []
+        for x in range(1, 80):
+            if K[x] > K[x - 1] and K[x] > K[x + 1]:
+                peak_age.append(x)
+                h = K[x]
+                w = self.get_fwhm(K, x)
+                v = h / w
+                # if x-1 in range(1, 80) and x-2 in range(1, 80) and x+1 in range(1, 80) and x+2 in range(1, 80):
+                #    v = (K[x]-K[x-1]) + (K[x]-K[x+1]) + (K[x]-K[x+2]) + (K[x]-K[x-2])
+                peak_v.append(v)
 
-def estimate_age(ego):
-    K = make_histogram(ego)
+        if len(peak_v) == 0:
+            # print(ego) TODO:
+            return -1
+        best_peak_index = peak_v.index(max(peak_v))  # TODO: ha nem talál csúcsot, akkor mit tegyen? 104840 - üres fájl
+        estimated_age = peak_age[best_peak_index]
+        # estimated_age = min(peak_age, key=lambda x: abs(x - allAges[ego])) # 50.7%-ig megy így
+        # TODO: csúcskiválasztás javítása
+        return estimated_age
 
-    peak_age = []
-    peak_v = []
-    for x in range(1, 80):
-        if K[x] > K[x - 1] and K[x] > K[x + 1]:
-            peak_age.append(x)
-            h = K[x]
-            w = get_fwhm(K, x)
-            v = h / w
-            # if x-1 in range(1, 80) and x-2 in range(1, 80) and x+1 in range(1, 80) and x+2 in range(1, 80):
-            #    v = (K[x]-K[x-1]) + (K[x]-K[x+1]) + (K[x]-K[x+2]) + (K[x]-K[x-2])
-            peak_v.append(v)
+    def read_groups_from_dots(self):
+        groups_of_ego = []
+        for ego in self.egos:
+            groups_of_ego.append([ego, read_groups(ego)])
+        return dict(groups_of_ego)
 
-    if len(peak_v) == 0:
-        # print(ego) TODO:
-        return -1
-    best_peak_index = peak_v.index(max(peak_v))  # TODO: ha nem talál csúcsot, akkor mit tegyen? 104840 - üres fájl
-    estimated_age = peak_age[best_peak_index]
-    # estimated_age = min(peak_age, key=lambda x: abs(x - allAges[ego])) # 50.7%-ig megy így # TODO: csúcskiválasztás javítása
-    return estimated_age
+    def make_smooth_age_distr(self):
+        n = [0]*91
+        index = list(range(10, 101))
+        N = []
+        values = list(self.allAges.values())
+        for i in index:
+            N.append(values.count(i))
+        for i in range(91):
+            for j in range(91):
+                n[i] += gauss(i - j)*N[j]   # (i+10) - (j+10) = i-j
+        return n
 
+    def estimate_all_ages(self, parameters=None):
+        pm2 = 0
+        if parameters is not None:
+            self.params = parameters
+        for ego in self.class_egos:
+            estimated_age = self.estimate_age(ego)
+            if estimated_age == -1:
+                continue
+            diff = pow((estimated_age - ego.realAge), 2)
+            if diff <= 4:
+                pm2 += 1
+        return pm2/len(self.class_egos)
 
-files = listdir('60-69')
-for filename in files:
-    if '_out.dot' in filename:
-        ego = int(''.join(list(filter(str.isdigit, filename))))
-        egos.append(ego)
+    def calc_derivative(self, x):
+        grad = np.zeros(x.size)
+        f_0 = self.estimate_all_ages()
+        print("fitness: " + str(f_0))
+        dx = 1
+        for dim in range(x.size):
+            x[dim] += dx
+            grad[dim] = (self.estimate_all_ages() - f_0)/dx
+            x[dim] -= dx
+        return grad
 
+    def simulated_annealing(self, cycles, start, no):
+        if start == 'fix':
+            self.params = np.array([1, 1, 1, 1, 1, 1,
+                                    1, 1, 3, 1, 1])
+        elif start == 'random':
+            self.params = np.array(
+                [uniform(0, 5), uniform(0, 5), uniform(0, 5), uniform(0, 5), uniform(0, 5), uniform(0, 5),
+                 uniform(0, 5), uniform(0, 5), uniform(0, 5), uniform(0, 5), uniform(0, 5)])
 
-def read_groups_from_dots():
-    groups_of_ego = []
-    for ego in egos:
-        groups_of_ego.append([ego, read_groups(ego)])
-    return dict(groups_of_ego)
+        E = self.estimate_all_ages()
 
+        prev_params = self.params
+        prev_E = E
 
-def make_smooth_age_distr():
-    n = [0]*91
-    index = list(range(10, 101))
-    N = []
-    values = list(allAges.values())
-    for i in index:
-        N.append(values.count(i))
-    for i in range(91):
-        for j in range(91):
-            n[i] += gauss(i - j)*N[j]   # (i+10) - (j+10) = i-j
-    return n
+        T = 0.01
+        with open("sa_"+str(cycles)+"_"+str(start)+"_"+str(no)+".log", "w+") as file:
+            print("#T, fitness, params", file=file)
+            while T > 0:
+                d_params = np.array(
+                    [uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1),
+                     uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1)])
+                d_params = d_params / np.linalg.norm(self.params)
+                self.params = self.params + d_params
+                E = self.estimate_all_ages()
+                print(self.params)
+                print("E = " + str(E))
+                print(str(T) + " " + str(E) + " " + get_nice_string(self.params), file=file)
+                if E > prev_E:
+                    prev_params = self.params
+                    prev_E = E
+                    print("fel")
+                else:
+                    p = math.exp((E - prev_E) / T)
+                    if uniform(0, 1) <= p:
+                        prev_params = self.params
+                        prev_E = E
+                        print("le " + str(p))
+                    else:
+                        self.params = self.params - d_params
+                        print("újra " + str(p))
+                        # pass # nem csinál semmit, újra random
+                print("T = " + str(T) + "\n")
+                T -= 0.01/cycles
 
+    def genetic_algorithm(self, population_size, generations, mutation):
+        population = Population(self.estimate_all_ages, n=population_size, mutation=mutation)
+        for i in range(generations):
+            population.evolve()
+        with open("ga_"+str(population_size)+"_"+str(generations)+"_"+str(mutation)+".log", "w+") as file:
+            print("#generation, best_fitness_of_generation, best_params", file=file)
+            for i in range(generations):
+                print(str(i+1) + " " + str(population.best_fitnesses[i])
+                      + " " + get_nice_string(population.best_params[i]), file=file)
 
-def estimate_all_ages():
-    # dev = 0  # Szórás
-    counter = 0
-    pm2 = 0
-    # shuffle(class_egos)
-    # pool = ThreadPool(10)
-    # results = pool.map(estimate_age, class_egos)
-    # pool.close()
-    # pool.join()
-    for ego in class_egos:
-        estimated_age = estimate_age(ego)
-        if estimated_age == -1:
-            continue
-        diff = pow((estimated_age - ego.realAge), 2)
-        # dev += diff
-        if diff <= 4:
-            pm2 += 1
-        counter += 1
-        # if counter % 100 == 0:
-        #    print(str(counter) + '/11000')
-    # dev /= len(egos)
-    # dev = math.sqrt(dev)
-    # print('deviation: ' + str(dev))
-    # print('+-2: ' + str(pm2 / len(egos)))
-    return pm2/len(class_egos)
+    def gradient_method(self):
+        self.params = np.array(
+            [1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1])  # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
+        gamma = 1
 
+        grad = self.calc_derivative(self.params)
+        prev_params = self.params
+        prev_grad = grad
+        self.params = self.params + grad * gamma
 
-def calc_derivative(x, n):
-    grad = np.zeros(n)
-    f_0 = estimate_all_ages()
-    print("fitness: " + str(f_0))
-    dx = 1
-    for dim in range(n):
-        x[dim] += dx
-        grad[dim] = (estimate_all_ages() - f_0)/dx
-        x[dim] -= dx
-    return grad
+        counter = 0
+        while np.linalg.norm(grad) >= 0.00001 or counter > 1000:
+            start = time.clock()
+            grad = self.calc_derivative(self.params)
+            # gamma = np.inner((params - prev_params), (grad - prev_grad)) / np.linalg.norm(grad - prev_grad)**2
+            prev_params = self.params
+            prev_grad = grad
+            print('grad = ' + str(grad))
+            print("params = " + str(self.params))
+            print("gamma: " + str(gamma))
+            self.params = self.params + grad * gamma
+            counter += 1
+            print("time:" + str(time.clock() - start) + "\n")
 
-
-class Individual(object):
-    def __init__(self, n=0, params=None, fitness=0):
-        if params is None:  # random paraméterek
-            self.params = np.random.uniform(0, 5, n)
-        else:
-            self.params = params
-            self.fitness = fitness
-
-    def calc_fitness(self):
-        global params
-        params = self.params
-        self.fitness = estimate_all_ages()
-
-
-class Population(object):
-    def __init__(self, n=0, individuals=None):
-        if individuals is None:
-            self.individuals = [Individual(n=11) for i in range(n)]
-            self.n = n
-        else:
-            self.individuals = individuals
-            self.n = len(individuals)
-        self.generation = 1
-
-    def calc_fitness(self):
-        for indiv in self.individuals:
-            indiv.calc_fitness()
-
-    def cross(self, parent1, parent2):
-        number_of_params = len(parent1.params)
-        params = np.zeros(number_of_params)
-        for i in range(number_of_params):
-            params[i] = choice([parent1.params[i], parent2.params[i]])
-        child = Individual(params=params)
-        self.individuals.append(child)
-
-    def crossover(self):
-        all_individual = list(range(len(self.individuals)))
-        shuffle(all_individual)
-        while len(all_individual) != 0:
-            parent_a = self.individuals[all_individual.pop()]
-            parent_b = self.individuals[all_individual.pop()]
-            self.cross(parent_a, parent_b)
-
-    def mutation(self):
-        for indiv in self.individuals:
-            for i in range(len(indiv.params)):
-                if random.random() < 0.1:
-                    indiv.params[i] += np.random.normal(scale=0.5)
-
-    def selection(self):
-        self.individuals.sort(key=lambda individual: individual.fitness, reverse=True)
-        del self.individuals[self.n:]
-
-    def evolve(self):
-        self.crossover()
-        self.mutation()
-        self.calc_fitness()
-        self.selection()
-
-        print("Generation " + str(self.generation))
-        for indiv in self.individuals:
-            print("fitness: " + str(indiv.fitness) + "  params: " + str(indiv.params))
-        print('\n')
-        self.generation += 1
+        print(counter)
+        print(self.estimate_all_ages(self.params))
+        print(self.params)
 
 
 if __name__ == '__main__':
-    # Betöltjük a dot fájlokat, amikben a csoportok vannak
-    # groups_of_ego = load_obj('groups_of_ego')
-    # groups_of_ego = read_groups_from_dots()
-    # Betöltjük az összes ember korát
-    # allAges = load_obj('allAges')
-    # allAges = read_ages()
-    # smoothedAgeDistr = load_obj('smoothedAgeDistr')
 
-    """
-    for ego in egos:
-        class_ego = Ego(ego, allAges[ego])
-        groups = []
-        for g in groups_of_ego[ego]:
-            ages = []
-            for id in g:
-                ages.append(allAges[id])
-            class_group = Group(ages)
-            class_group.calculate_stats()
-            if class_group.groupSize != 0: # Ha nem ismerjük egyik ember korát sem a csoportban, akkor a csoportot nem
-                groups.append(class_group) # vesszük figyelembe
-        class_ego.groups = groups
-        if not groups:  # is_empty nincs egy csoportja sem
-            continue
-        class_egos.append(class_ego)
-    """
-    class_egos = load_obj('class_egos')
+    app = MyApplication()
+
+    if len(sys.argv) == 1:
+        start = time.time()
+        app.estimate_all_ages()
+        end = time.time()
+        print(end-start)
+    else:
+        if sys.argv[1] == 'grad':
+            app.gradient_method()
+        elif sys.argv[1] == 'sa':
+            # python3 main.py sa #cycles #start=fix,random #no
+            app.simulated_annealing(int(sys.argv[2]), sys.argv[3], int(sys.argv[4]))
+        elif sys.argv[1] == 'ga':
+            # python3 main.py ga #population_size #generation #mutation
+            app.genetic_algorithm(int(sys.argv[2]), int(sys.argv[3]), float(sys.argv[4]))
 
     # start = time.time()
     # print(estimate_all_ages())
     # end = time.time()
     # print(end-start)
-
-    # GA
-    population = Population(10)
-    while True:
-        population.evolve()
-
-    """
-    # SA
-    params = np.array([1,  1,  1,   1,  1,  1,
-                     1, 1,  3])
-    # params = np.array([1, 1, 1, 1, 1, 1, 1, 1, 4])  # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
-    E = estimate_all_ages()
-
-    prev_params = params
-    prev_E = E
-
-    T = 0.001
-    while T > 0:
-        d_params = np.array([uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1),
-                         uniform(-1, 1), uniform(-1, 1), uniform(-1, 1)])
-        d_params = d_params/np.linalg.norm(params)
-        params = params + d_params
-        E = estimate_all_ages()
-        print(params)
-        print("E = " + str(E))
-        if E > prev_E:
-            prev_params = params
-            prev_E = E
-            print("fel")
-        else:
-            p = math.exp((E-prev_E)/T)
-            if uniform(0, 1) <= p:
-                prev_params = params
-                prev_E = E
-                print("le " + str(p))
-            else:
-                params = params - d_params
-                print("újra " + str(p))
-                # pass # nem csinál semmit, újra random
-        print("T = " + str(T) + "\n")
-        T -= 0.000001
-    """
-
-    """
-    # Gradiens módszer - wikipédia 1 D
-    opt_sigma = 4.7     # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
-    dx = 2
-    gamma = 10
-
-    f1 = estimate_all_ages()
-    prev_opt_sigma = opt_sigma
-    opt_sigma += dx
-    f2 = estimate_all_ages()
-    derivative = (f2 - f1) / dx
-    opt_sigma += derivative * gamma
-    prev_val = f1
-    prev_der = derivative
-
-    precision = 1
-    while precision >= 0.00001:
-        f1 = estimate_all_ages()
-        prev_opt_sigma = opt_sigma
-        opt_sigma += dx
-        f2 = estimate_all_ages()
-        derivative = (f2 - f1)/dx
-        print('derivative = ', + str(derivative))
-        opt_sigma += derivative*gamma
-        # gamma = ((opt_sigma-dx) - prev_opt_sigma)/(derivative - prev_der)
-        precision = abs(prev_val - f1)
-        prev_val = f1
-        prev_der = derivative
-
-    print(precision)
-    print(f1)
-    print(opt_sigma)
-
-    percents = []
-    for i in numpy.linspace(1, 10, 100):
-        opt_sigma = i
-        percents.append(estimate_all_ages())
-
-    plt.plot(numpy.linspace(1, 10, 100), percents)
-    plt.show()
-    """
-
-    """
-    # Gradiens módszer - wikipédia több Dim
-    params = np.array([1, 1, 1, 1, 1, 1, 1, 1, 4])     # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
-                          # sorrend: 1/(s + sigma)-ból az s, optimális group size, opt group size sigmája
-    gamma = 100
-    # fitness: 0.37551606533835935 - csak sigma súly
-    # grad = [8.97504936e-05   3.59001975e-04 - 1.79500987e-04]
-    # params = [2.24914737  4.24753186 - 0.88924789]
-
-    grad = calc_derivative(params, 9)
-    prev_params = params
-    prev_grad = grad
-    params = params + grad * gamma
-
-    counter = 0
-    while np.linalg.norm(grad) >= 0.00001 or counter > 1000:
-        start = time.clock()
-        grad = calc_derivative(params, 9)
-        # gamma = np.inner((params - prev_params), (grad - prev_grad)) / np.linalg.norm(grad - prev_grad)**2
-        prev_params = params
-        prev_grad = grad
-        print('grad = ' + str(grad))
-        print("params = " + str(params))
-        print("gamma: " + str(gamma))
-        params = params + grad * gamma
-        counter += 1
-        print("time:" + str(time.clock() - start) + "\n")
-
-    print(counter)
-    print(estimate_all_ages())
-    print(params)
-    """
 
     """
     percents = []
@@ -512,7 +370,3 @@ if __name__ == '__main__':
     plt.plot(np.linspace(1, 10, 100), percents)
     plt.show()
     """
-# print(estimate_age(4))
-# x = list(range(81))
-# plt.plot(x, K)
-# plt.show()
