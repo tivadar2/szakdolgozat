@@ -18,6 +18,8 @@
 \date{}
 \begin{document}
 
+% TODO: komplexitásszerű dolgok leírása, hányszor kell fitness-t számolni, a különböző módszereknél
+
 \begin{titlepage}
 	\centering
 	{\Huge\bfseries Szakdolgozat\par}
@@ -30,7 +32,7 @@
 	\begin{table}[H]
 		\centering
 		\begin{tabular}{ccl}
-			&	\LARGE\textbf{Témavezető:} &\Large Dr. Török János \\ % ezek jók-e?
+			&	\LARGE\textbf{Témavezető:} &\Large Dr. Török János \\ % TODO: ezek jók-e?
 			& &\\
 			& &\Large egyetemi docens \\
 			& &\\
@@ -48,6 +50,7 @@
 	{\large Budapesti Műszaki és Gazdaságtudományi Egyetem\\ 2017 \par}
 \end{titlepage}
 \onehalfspacing
+\iffalse
 \section*{Szakdolgozat}
 \begin{itemize}
 	\item a TDK alapján megírtam a programot, ebből mennyit kell majd leírnom szakdolgozatba?
@@ -64,18 +67,31 @@
 \end{itemize}
 pm2 függvény - plusz mínusz 2 éven belüli becslések aránya, 0 és 1 közti szám \\ \\
 Margók mérete a latex alapbeállítása?
-
+\fi
 \pagebreak
 \tableofcontents
 \pagebreak
 \section{Bevezetés}
 \subsection{Motiváció}
-Napjainkban a felgyorsult információáramlás miatt rengeteg adat keletkezik rólunk, illetve környezetünkről az interneten. \iffalse TODO: vagy máshol is \fi Hatalmas mennyiségről van szó, mely akár publikus is lehet, bár legtöbbször valamilyen jogi személy (például vállalatok, állam, szervezetek) birtokában áll. Az utóbbi években nagyon felkapott lett ezek feldolgozása, azaz, hogy ebből a sok adatból hasznos információkat lehessen leszűrni.
+Napjainkban a felgyorsult információáramlás miatt rengeteg adat keletkezik rólunk, illetve környezetünkről az interneten. % TODO: vagy máshol is
+Hatalmas mennyiségről van szó, mely akár publikus is lehet, bár legtöbbször valamilyen jogi személy (például vállalatok, állam, szervezetek) birtokában áll. Az utóbbi években nagyon felkapott lett ezek feldolgozása, azaz, hogy ebből a sok adatból hasznos információkat lehessen leszűrni.
+% TODO: big data
+% TODO: milyen nagyszerű dolgokat csináltak ezzel
+% TODO: én mit akarok ezzel csinálni (optimalizáció)
+% TODO: komplex rendszer, tehát fizikával összehasonlítható
 
-\subsection{Az életkorbecslő }
+\subsection{Az életkorbecslő eljárás} % TODO: hogyan hivatkozzak a TDK-ra?
+Az életkor meghatározásához alapvetően egy szociális hálózatot használunk fel. Ezen belül úgynevezett egocentrikus hálózatot, amely már csak egy adott személy kapcsolatrendszerét tartalmazza. Az adatbázisban a kapcsolatok mellett az ismerősök életkorait tartalmazzák. Persze ezek az adatok hiányosak, vagy lehetnek hibásak is. A kapcsolati hálózat egy gráfként kezelhető, amelyben a csúcsok az embereknek, az élek pedig a köztük lévő ismeretségnek felelnek meg.
+
+Az embereket jól jellemzik a közösségek, amelyeknek tagjai. Ilyenek például az osztályok, a családok, a munkatársi vagy baráti körök. Egy kiválasztott egyén életkora összefüggésbe hozható a közösségei átlagéletkoraival. Ez az összefüggés nem triviális, viszont felhasználható a vizsgált személy korának meghatározásához. Ehhez először fel kell térképezni a közösségeket a hálózatban, ami nem egyértelmű feladat. Létezik többfajta közösségfelismerő algoritmus, melyek megpróbálják az ember által elképzelt közösségképet felhasználni a kereséshez, illetve a hálózat esetleges hibáit is figyelembe venni (például hiányzó élek vagy csúcsok). Az általunk továbbiakban használt csoportok az úgynevezett klikk perkolációs algoritmussal \cite{tamas_gabor_tdk} lettek feltérképezve.
+\subsection{Optimalizáció jelentése}
 \section{Algoritmusok}
 \subsection{Gradiens módszer}
 \subsection{Szimulált hűtés}
 \subsection{Genetikus algoritmus}
 \section{Eredmények}
+\begin{thebibliography}{9}
+	\bibitem{tamas_gabor_tdk}
+	TDK % TODO: rendesen hivatkozni
+\end{thebibliography}
 \end{document}
