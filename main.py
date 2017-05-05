@@ -6,10 +6,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import time
-from random import uniform
+from random import uniform, shuffle
 from genetic import Population
 import cProfile
-import numexpr as ne
+from os import listdir
+import gzip
+import re
 
 
 def get_nice_string(list_or_iterator):
@@ -43,7 +45,6 @@ def read_groups(ego):
         for node in tmp:
             nodes.append(int(node[1:]))
         groups.append(nodes)
-    # del tmp            # TODO: valami hiba
     file.close()
     del file
     return groups
@@ -128,7 +129,7 @@ class MyApplication(object):
         self.class_egos = load_obj('class_egos')
 
         # Paraméterek
-        self.params = np.array([1, 1, 1, 1, 1, 1, 1, 1, 10, 1, 1])
+        self.params = np.array([1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1])
 
     def make_histogram(self, ego):
         x = np.linspace(0, 80, 81)
@@ -139,6 +140,7 @@ class MyApplication(object):
             sigma = g.deviation
             groupSize = g.groupSize
 
+            suly = 1
             if sigma == 0 and groupSize <= 1:
                 suly = self.params[9]
             elif sigma == 0 and groupSize > 1:
@@ -160,11 +162,15 @@ class MyApplication(object):
             elif 3 < sigma <= 6 and 10 < groupSize:
                 suly = self.params[7]
             elif 6 < sigma and 10 < groupSize:
-                suly = self.params[8]
+                # suly = self.params[8]
+                suly = 1
 
             matrix[num] = suly*np.exp(-np.square(x - g.averageAge) / (2 * self.params[8]))
 
+        # print(len(ego.groups))
         K = matrix.sum(axis=0)
+        # plt.plot(x, K)
+        # plt.show()
         return K
 
     def get_fwhm(self, hist, age):  # TODO: Ezen még lehetne javítani
@@ -234,14 +240,15 @@ class MyApplication(object):
         pm2 = 0
         if parameters is not None:
             self.params = parameters
-        for ego in self.class_egos:
+        shuffle(self.class_egos)
+        for ego in self.class_egos[:len(self.class_egos)//1]:
             estimated_age = self.estimate_age(ego)
             if estimated_age == -1:
                 continue
             diff = pow((estimated_age - ego.realAge), 2)
             if diff <= 4:
                 pm2 += 1
-        return pm2/len(self.class_egos)
+        return pm2/(len(self.class_egos)//1)
 
     def calc_derivative(self, x):
         grad = np.zeros(x.size)
@@ -339,11 +346,66 @@ class MyApplication(object):
 
 if __name__ == '__main__':
 
+    """
+    # iWiW adatok konvertálása az Ego class formátumba + pickle
+    # files = listdir('dot')
+    egos = []
+    with open('ids300.dat') as ids_file:
+        egos = [int(line) for line in ids_file.readlines()]
+    # for filename in files:
+    #    if '_out.dot' in filename:
+    #        ego = int(''.join(list(filter(str.isdigit, filename))))
+    #        egos.append(ego)
+
+    allAges = {}
+    with open('birthdate.dat') as birthdate_file:
+        lines = birthdate_file.readlines()
+    for line in lines:
+        id_birthdate = [int(x) for x in line.split()]
+        if id_birthdate[1] == 0 or id_birthdate[1] == 1900:
+            continue
+        allAges[id_birthdate[0]] = 2014 - id_birthdate[1]
+
+    class_egos = []
+    count = 0
+    for ego in egos:
+        try:
+            class_ego = Ego(ego, allAges[ego])
+        except KeyError:
+            count += 1
+            continue
+        groups = []
+        try:
+            with gzip.open('dot/{}_out.dot.gz'.format(ego)) as file:
+                lines = file.readlines()
+                for line in lines:
+                    ages = []
+                    for j_id in str(line).split(',')[:-1]:
+                        ego_in_group = int(re.findall('\d+', j_id)[0])
+                        if ego_in_group != ego:
+                            try:
+                                ages.append(allAges[ego_in_group])
+                            except KeyError:
+                                ages.append(999)
+                    group = Group(ages)
+                    group.calculate_stats()
+                    groups.append(group)
+        except FileNotFoundError:
+            continue
+        class_ego.groups = groups
+        class_egos.append(class_ego)
+    print(count)
+    print(len(class_egos))
+    save_obj(class_egos, 'iwiw_300_class_egos')
+    """
+
     app = MyApplication()
+    app.class_egos = load_obj('iwiw_50_class_egos')
 
     if len(sys.argv) == 1:
         start = time.time()
-        app.estimate_all_ages()
+        # app.params = [6.7747038649, 7.71053429695, 0.379544637336, 3.19092356402, 3.96399904303, -4.47303253856, 3.49076237822, 1.71134368002, 14.2718478954, 4.32734474146, 8.22419206133]
+        print(app.estimate_all_ages())
         end = time.time()
         print(end-start)
     else:
