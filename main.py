@@ -14,6 +14,9 @@ import gzip
 import re
 
 
+global ages
+
+
 def get_nice_string(list_or_iterator):
     return "[" + ", ".join( str(x) for x in list_or_iterator) + "]"
 
@@ -116,6 +119,7 @@ class Ego(object):
         self.ID = id
         self.realAge = real_age
         self.groups = []
+        self.estimatedAge = -1
 
 
 class MyApplication(object):
@@ -129,7 +133,9 @@ class MyApplication(object):
         self.class_egos = load_obj('class_egos')
 
         # Paraméterek
-        self.params = np.array([1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1])
+        self.params = np.array([1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1])
+        #self.params = np.array([6.7747038649, 7.71053429695, 0.379544637336, 3.19092356402, 3.96399904303, -4.47303253856, 3.49076237822,
+         #1.71134368002, 2.67, 4.32734474146, 8.22419206133])
 
     def make_histogram(self, ego):
         x = np.linspace(0, 80, 81)
@@ -165,10 +171,10 @@ class MyApplication(object):
                 # suly = self.params[8]
                 suly = 1
 
-            matrix[num] = suly*np.exp(-np.square(x - g.averageAge) / (2 * self.params[8]))
+            matrix[num] = suly*np.exp(-np.square(x - g.averageAge) / (2 * self.params[8]*self.params[8]))
 
         # print(len(ego.groups))
-        K = matrix.sum(axis=0)
+        K = matrix.sum(axis=0)  #/ages
         # plt.plot(x, K)
         # plt.show()
         return K
@@ -194,12 +200,12 @@ class MyApplication(object):
         fwhm = right_half - left_half
         return fwhm
 
-    def estimate_age(self, ego):
+    def estimate_age(self, ego, debug=False):
         K = self.make_histogram(ego)
 
         peak_age = []
         peak_v = []
-        for x in range(1, 80):
+        for x in range(14, 80):
             if K[x] > K[x - 1] and K[x] > K[x + 1]:
                 peak_age.append(x)
                 h = K[x]
@@ -212,9 +218,11 @@ class MyApplication(object):
         if len(peak_v) == 0:
             # print(ego) TODO:
             return -1
+        if debug:
+            print(peak_age, peak_v)
         best_peak_index = peak_v.index(max(peak_v))  # TODO: ha nem talál csúcsot, akkor mit tegyen? 104840 - üres fájl
         estimated_age = peak_age[best_peak_index]
-        # estimated_age = min(peak_age, key=lambda x: abs(x - allAges[ego])) # 50.7%-ig megy így
+        # estimated_age = min(peak_age, key=lambda x: abs(x - ego.realAge)) # 50.7%-ig megy így
         # TODO: csúcskiválasztás javítása
         return estimated_age
 
@@ -237,17 +245,36 @@ class MyApplication(object):
         return n
 
     def estimate_all_ages(self, parameters=None):
+        pm1 = 0
         pm2 = 0
+        pm3 = 0
+        pm4 = 0
+        pm5 = 0
         if parameters is not None:
             self.params = parameters
         shuffle(self.class_egos)
         for ego in self.class_egos[:len(self.class_egos)//1]:
             estimated_age = self.estimate_age(ego)
+            ego.estimatedAge = estimated_age
             if estimated_age == -1:
                 continue
             diff = pow((estimated_age - ego.realAge), 2)
+            if diff <= 1:
+                pm1 += 1
             if diff <= 4:
                 pm2 += 1
+            if diff <= 9:
+                pm3 += 1
+            if diff <= 16:
+                pm4 += 1
+            if diff <= 25:
+                pm5 += 1
+
+        print("pm1", pm1/(len(self.class_egos)//1))
+        print("pm2", pm2 / (len(self.class_egos) // 1))
+        print("pm3", pm3 / (len(self.class_egos) // 1))
+        print("pm4", pm4 / (len(self.class_egos) // 1))
+        print("pm5", pm5 / (len(self.class_egos) // 1))
         return pm2/(len(self.class_egos)//1)
 
     def calc_derivative(self, x):
@@ -350,7 +377,7 @@ if __name__ == '__main__':
     # iWiW adatok konvertálása az Ego class formátumba + pickle
     # files = listdir('dot')
     egos = []
-    with open('ids300.dat') as ids_file:
+    with open('ids50.dat') as ids_file:
         egos = [int(line) for line in ids_file.readlines()]
     # for filename in files:
     #    if '_out.dot' in filename:
@@ -364,12 +391,25 @@ if __name__ == '__main__':
         id_birthdate = [int(x) for x in line.split()]
         if id_birthdate[1] == 0 or id_birthdate[1] == 1900:
             continue
-        allAges[id_birthdate[0]] = 2014 - id_birthdate[1]
+        allAges[id_birthdate[0]] = 2013 - id_birthdate[1]
+
+    ages = np.zeros(81)
+    for age in range(81):
+        ages[age] = list(allAges.values()).count(age)
+    aaa = np.zeros(81)
+    x = np.linspace(0, 80, 81)
+    for age in range(81):
+        aaa += (1/(math.sqrt(2*math.pi)*2))*np.exp(-np.square(x - age)/(2*4))*ages[age]
+    ages = aaa/90000
+    # plt.plot(np.linspace(0, 80, 81), aaa)
+    # plt.show()
 
     class_egos = []
     count = 0
     for ego in egos:
         try:
+            if not 14 <= allAges[ego] < 80:
+                continue
             class_ego = Ego(ego, allAges[ego])
         except KeyError:
             count += 1
@@ -396,18 +436,53 @@ if __name__ == '__main__':
         class_egos.append(class_ego)
     print(count)
     print(len(class_egos))
-    save_obj(class_egos, 'iwiw_300_class_egos')
+    save_obj(class_egos, 'iwiw_50_class_egos')
     """
 
     app = MyApplication()
-    app.class_egos = load_obj('iwiw_50_class_egos')
+    app.class_egos = load_obj('iwiw_200_class_egos')
+    # app.estimate_age()
 
     if len(sys.argv) == 1:
         start = time.time()
         # app.params = [6.7747038649, 7.71053429695, 0.379544637336, 3.19092356402, 3.96399904303, -4.47303253856, 3.49076237822, 1.71134368002, 14.2718478954, 4.32734474146, 8.22419206133]
-        print(app.estimate_all_ages())
+        app.estimate_all_ages()
+        print(app.params)
         end = time.time()
         print(end-start)
+        ego_set = set()
+        with open("tamas_pred/predictions_200.dat") as file:
+            lines = file.readlines()
+            c = 0
+            for line in lines:
+                age_tamas = int(line.split("\t")[0])
+                estAge_tamas = int(line.split("\t")[1])
+                id_tamas = int(line.split("\t")[2])
+                for e in app.class_egos:
+                    if e.ID == id_tamas:
+                        ego_set.add(e)
+                    if (e.ID == id_tamas and
+                            estAge_tamas != e.estimatedAge and
+                            estAge_tamas-1 != e.estimatedAge and
+                            estAge_tamas+1 != e.estimatedAge):
+                        pass
+                        #print(e.ID, age_tamas, e.realAge, estAge_tamas, e.estimatedAge)
+                        #app.estimate_age(e, True)
+                        #plt.plot(np.linspace(0, 80, 81), app.make_histogram(e))
+                        #plt.show()
+                        c += 1
+        print(c)
+        print(len(app.class_egos))
+        difference = set(app.class_egos) - ego_set
+        print(len(difference), len(set(app.class_egos)), len(ego_set))
+        howManySuccesful = 0
+        allOfThem = 0
+        for ego in difference:
+            if math.fabs(ego.realAge - ego.estimatedAge) <= 2:
+                howManySuccesful += 1
+            allOfThem += 1
+            print(ego.ID, ego.realAge, ego.estimatedAge)
+        print(allOfThem, howManySuccesful)
     else:
         if sys.argv[1] == 'grad':
             app.gradient_method()
