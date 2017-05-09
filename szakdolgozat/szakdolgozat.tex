@@ -25,7 +25,7 @@
 	{\Huge\bfseries Szakdolgozat\par}
 	\vspace{1cm}
 	\vspace{1cm}
-	{\LARGE Életkor becslése szociális hálózatok gépi optimalizációs módszerekkel\par}
+	{\LARGE Életkor becslése szociális hálózatok gépi optimalizációs módszerekkel\par} % TODO: ez marad a cím?
 	\vspace{3cm}
 	{\huge\bfseries Pongó Tivadar\\\par}
 	\vspace{3cm}
@@ -45,7 +45,7 @@
 	\vfill
 	\begin{figure}[H]
 		\centering
-		\includegraphics[scale=0.35]{bme_logo_kicsi.eps}
+		\includegraphics[scale=0.35]{img/bme_logo_kicsi.eps}
 	\end{figure} 
 	{\large Budapesti Műszaki és Gazdaságtudományi Egyetem\\ 2017 \par}
 \end{titlepage}
@@ -80,12 +80,28 @@ Hatalmas mennyiségről van szó, mely akár publikus is lehet, bár legtöbbsz�
 % TODO: én mit akarok ezzel csinálni (optimalizáció)
 % TODO: komplex rendszer, tehát fizikával összehasonlítható
 
+% TODO: E/1-ben írjak, vagy T/1-ben
+
 \subsection{Az életkorbecslő eljárás} % TODO: hogyan hivatkozzak a TDK-ra?
 Az életkor meghatározásához alapvetően egy szociális hálózatot használunk fel. Ezen belül úgynevezett egocentrikus hálózatot, amely már csak egy adott személy kapcsolatrendszerét tartalmazza. Az adatbázisban a kapcsolatok mellett az ismerősök életkorait tartalmazzák. Persze ezek az adatok hiányosak, vagy lehetnek hibásak is. A kapcsolati hálózat egy gráfként kezelhető, amelyben a csúcsok az embereknek, az élek pedig a köztük lévő ismeretségnek felelnek meg.
 
-Az embereket jól jellemzik a közösségek, amelyeknek tagjai. Ilyenek például az osztályok, a családok, a munkatársi vagy baráti körök. Egy kiválasztott egyén életkora összefüggésbe hozható a közösségei átlagéletkoraival. Ez az összefüggés nem triviális, viszont felhasználható a vizsgált személy korának meghatározásához. Ehhez először fel kell térképezni a közösségeket a hálózatban, ami nem egyértelmű feladat. Létezik többfajta közösségfelismerő algoritmus, melyek megpróbálják az ember által elképzelt közösségképet felhasználni a kereséshez, illetve a hálózat esetleges hibáit is figyelembe venni (például hiányzó élek vagy csúcsok). Az általunk továbbiakban használt csoportok az úgynevezett klikk perkolációs algoritmussal \cite{tamas_gabor_tdk} lettek feltérképezve.
+Az embereket jól jellemzik a közösségek, amelyeknek tagjai. Ilyenek például az osztályok, a családok, a munkatársi vagy baráti körök. Egy kiválasztott egyén életkora összefüggésbe hozható a közösségei átlagéletkoraival. Ez az összefüggés nem triviális, viszont felhasználható a vizsgált személy korának meghatározásához. Ehhez először fel kell térképezni a közösségeket a hálózatban, ami nem egyértelmű feladat. Létezik \iffalse TODO: létezik helyett valami más szó \fi többfajta közösségfelismerő algoritmus, melyek megpróbálják az ember által elképzelt közösségképet felhasználni a kereséshez, illetve a hálózat esetleges hibáit is figyelembe venni (például hiányzó élek vagy csúcsok). Az általunk továbbiakban használt csoportok az úgynevezett klikk perkolációs algoritmussal \cite{tamas_gabor_tdk} lettek feltérképezve. % TODO: vagy másik cikk
+Ezután készítünk egy hisztogramot, még pedig úgy, hogy a csoportok átlagéletkoraira centrált Gauss-görbéket összegezzük az összes csoportra, tehát egy diszkrét konvolúciót végzünk el.
+\begin{equation} \label{simito_gauss}
+	g(x) = \frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{x^2}{2\sigma^2}}
+\end{equation}
+\begin{equation} \label{diszkret_konv}
+	K(a) = \sum_{i=1}^{C} g(a-a_i) \cdot p(n_{i}, \sigma_{i}) % TODO: kell-e részletezni, hogy ez miért konv.?
+\end{equation}
+Az \iffalse TODO: Az-A \fi (\ref{simito_gauss}) képlet egy normált Gauss-görbe, amelynek a szórásparamétere $\sigma$. A \iffalse Az-A \fi (\ref{diszkret_konv}) képletben $a$ az életkort jelöli, $C$ a csoportok számát, $a_i$ az i. csoport átlagéletkorát, $p$ pedig egy súlyfaktort, amely függhet az adott csoport nagyságától ($n_{i}$) és a csoporton belüli életkorok szórásától ($\sigma_i$). Alapesetben $p=1$, ekkor nem vesszük figyelembe a csoportok minőségét\iffalse TODO: milyenségét \fi. Alább \aref{hisztogram_pelda}. ábrán láthatunk egy példát a $K(a)$ függvényre.
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=1.0]{}
+	\caption{Hisztogram} % TODO: bővebb aláírás
+	\label{hisztogram_pelda}
+\end{figure}
 \subsection{Optimalizáció jelentése}
-\section{Algoritmusok}
+\section{Optimalizációs módszerek}
 \subsection{Gradiens módszer}
 \subsection{Szimulált hűtés}
 \subsection{Genetikus algoritmus}
