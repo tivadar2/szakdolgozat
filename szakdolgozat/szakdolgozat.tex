@@ -69,9 +69,28 @@ pm2 függvény - plusz mínusz 2 éven belüli becslések aránya, 0 és 1 közt
 Margók mérete a latex alapbeállítása?
 \fi
 \pagebreak
+\begin{center}
+	{\Huge Témakiírás}
+\end{center}
+\medskip
+
+
+\pagebreak
+% Önállósági nyilatkozat
+\begin{center}
+	{\Huge Önállósági nyilatkozat}
+\end{center}
+\medskip
+Alulírott Pongó Tivadar a Budapesti Műszaki és Gazdaságtudományi Egyetem fizika BSc szakos hallgatója kijelentem, hogy ezt a szakdolgozatot meg nem engedett segédeszközök nélkül, önállóan, a témavezető irányításával készítettem, és csak a megadott forrásokat használtam fel. \\
+Minden olyan részt, melyet szó szerint, vagy azonos értelemben, de átfogalmazva más forrásból vettem, a forrás megadásával jelöltem.\\\\
+Budapest, 2017. 05. 25. \\ \\ \\ %TODO: Dátum pontosan
+\hspace*{100mm}aláírás
+\pagenumbering{gobble}
+\pagebreak
 \tableofcontents
 \pagebreak
 \section{Bevezetés}
+\pagenumbering{arabic}
 \subsection{Motiváció}
 Napjainkban a felgyorsult információáramlás miatt rengeteg adat keletkezik rólunk, illetve környezetünkről az interneten. % TODO: vagy máshol is
 Hatalmas mennyiségről van szó, mely akár publikus is lehet, bár legtöbbször valamilyen jogi személy (például vállalatok, állam, szervezetek) birtokában áll. Az utóbbi években nagyon felkapott lett ezek feldolgozása, azaz, hogy ebből a sok adatból hasznos információkat lehessen leszűrni.
@@ -91,12 +110,12 @@ Ezután készítünk egy hisztogramot, még pedig úgy, hogy a csoportok átlag�
 	g(x) = \frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{x^2}{2\sigma^2}}
 \end{equation}
 \begin{equation} \label{diszkret_konv}
-	K(a) = \sum_{i=1}^{C} g(a-a_i) \cdot p(n_{i}, \sigma_{i}) % TODO: kell-e részletezni, hogy ez miért konv.?
+	K(a) = \sum_{i=1}^{C} g(a-a_i) \cdot p(n_{i}, \sigma_{i}) % TODO: kell-e részletezni, hogy ez miért konv.? illetve a simított életkoreloszlással való leosztás
 \end{equation}
 Az \iffalse TODO: Az-A \fi (\ref{simito_gauss}) képlet egy normált Gauss-görbe, amelynek a szórásparamétere $\sigma$. A \iffalse Az-A \fi (\ref{diszkret_konv}) képletben $a$ az életkort jelöli, $C$ a csoportok számát, $a_i$ az i. csoport átlagéletkorát, $p$ pedig egy súlyfaktort, amely függhet az adott csoport nagyságától ($n_{i}$) és a csoporton belüli életkorok szórásától ($\sigma_i$). Alapesetben $p=1$, ekkor nem vesszük figyelembe a csoportok minőségét\iffalse TODO: milyenségét \fi. Alább \aref{hisztogram_pelda}. ábrán láthatunk egy példát a $K(a)$ függvényre.
 \begin{figure}[H]
 	\centering
-	\includegraphics[scale=1.0]{}
+	%\includegraphics[scale=1.0]{}
 	\caption{Hisztogram} % TODO: bővebb aláírás
 	\label{hisztogram_pelda}
 \end{figure}
@@ -106,6 +125,7 @@ Az \iffalse TODO: Az-A \fi (\ref{simito_gauss}) képlet egy normált Gauss-görb
 \subsection{Szimulált hűtés}
 \subsection{Genetikus algoritmus}
 \section{Eredmények}
+\section{Összegzés}
 \begin{thebibliography}{9}
 	\bibitem{tamas_gabor_tdk}
 	TDK % TODO: rendesen hivatkozni
