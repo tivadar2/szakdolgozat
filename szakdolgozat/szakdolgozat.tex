@@ -14,11 +14,20 @@
 \usepackage{subcaption}
 \usepackage{multirow}
 \usepackage{setspace}
-\title{}
-\date{}
+\usepackage{diagbox}
+\usepackage{setspace}
+\usepackage{natbib}
+\bibliographystyle{unsrt}
+%\usepackage[backend=biber]{biblatex}
+%\addbibresource{bibliography.bib}
+
+
 \begin{document}
 
 % TODO: komplexitásszerű dolgok leírása, hányszor kell fitness-t számolni, a különböző módszereknél
+% TODO: margók
+% TODO: hogyan hivatkozzam az egész életkorbecslő dologra?
+% TODO: negatív csúcsok -> jobb v-jű lesz a többi csúcs?
 
 \begin{titlepage}
 	\centering
@@ -32,7 +41,7 @@
 	\begin{table}[H]
 		\centering
 		\begin{tabular}{ccl}
-			&	\LARGE\textbf{Témavezető:} &\Large Dr. Török János \\ % TODO: ezek jók-e?
+			&	\LARGE\textbf{Témavezető:} &\Large Dr. Török János \\
 			& &\\
 			& &\Large egyetemi docens \\
 			& &\\
@@ -68,11 +77,6 @@
 pm2 függvény - plusz mínusz 2 éven belüli becslések aránya, 0 és 1 közti szám \\ \\
 Margók mérete a latex alapbeállítása?
 \fi
-\pagebreak
-\begin{center}
-	{\Huge Témakiírás}
-\end{center}
-\medskip
 
 
 \pagebreak
@@ -98,36 +102,132 @@ Hatalmas mennyiségről van szó, mely akár publikus is lehet, bár legtöbbsz�
 % TODO: milyen nagyszerű dolgokat csináltak ezzel
 % TODO: én mit akarok ezzel csinálni (optimalizáció)
 % TODO: komplex rendszer, tehát fizikával összehasonlítható
+% TODO: erre akarok egy programot írni
 
 % TODO: E/1-ben írjak, vagy T/1-ben
 
-\subsection{Az életkorbecslő eljárás} % TODO: hogyan hivatkozzak a TDK-ra?
+\section{Az életkorbecslő eljárás} % TODO: hogyan hivatkozzak a TDK-ra? + más cím itt?
 Az életkor meghatározásához alapvetően egy szociális hálózatot használunk fel. Ezen belül úgynevezett egocentrikus hálózatot, amely már csak egy adott személy kapcsolatrendszerét tartalmazza. Az adatbázisban a kapcsolatok mellett az ismerősök életkorait tartalmazzák. Persze ezek az adatok hiányosak, vagy lehetnek hibásak is. A kapcsolati hálózat egy gráfként kezelhető, amelyben a csúcsok az embereknek, az élek pedig a köztük lévő ismeretségnek felelnek meg.
 
-Az embereket jól jellemzik a közösségek, amelyeknek tagjai. Ilyenek például az osztályok, a családok, a munkatársi vagy baráti körök. Egy kiválasztott egyén életkora összefüggésbe hozható a közösségei átlagéletkoraival. Ez az összefüggés nem triviális, viszont felhasználható a vizsgált személy korának meghatározásához. Ehhez először fel kell térképezni a közösségeket a hálózatban, ami nem egyértelmű feladat. Létezik \iffalse TODO: létezik helyett valami más szó \fi többfajta közösségfelismerő algoritmus, melyek megpróbálják az ember által elképzelt közösségképet felhasználni a kereséshez, illetve a hálózat esetleges hibáit is figyelembe venni (például hiányzó élek vagy csúcsok). Az általunk továbbiakban használt csoportok az úgynevezett klikk perkolációs algoritmussal \cite{tamas_gabor_tdk} lettek feltérképezve. % TODO: vagy másik cikk
-Ezután készítünk egy hisztogramot, még pedig úgy, hogy a csoportok átlagéletkoraira centrált Gauss-görbéket összegezzük az összes csoportra, tehát egy diszkrét konvolúciót végzünk el.
+\subsection{Optimizálatlan életkor-meghatározás} \label{eletkor_becsles_tamas_gabor}
+Ebben az alrészben (\ref{eletkor_becsles_tamas_gabor}) a \cite{tamas_gabor_tdk} TDK dolgozatban leírt életkorbecslő eljárást ismertetem, amely alapul szolgál ezen szakdolgozatnak.
+
+Az embereket jól jellemzik a közösségek, amelyeknek tagjai. Ilyenek például az osztályok, a családok, a munkatársi vagy baráti körök. Egy kiválasztott egyén életkora összefüggésbe hozható a közösségei átlagéletkoraival. Ez az összefüggés nem triviális, viszont felhasználható a vizsgált személy korának meghatározásához. Ehhez először fel kell térképezni a közösségeket a hálózatban, ami nem egyértelmű feladat. Létezik \iffalse TODO: létezik helyett valami más szó \fi többfajta közösségfelismerő algoritmus, melyek megpróbálják az ember által elképzelt közösségképet felhasználni a kereséshez, illetve a hálózat esetleges hibáit is figyelembe venni (például hiányzó élek vagy csúcsok). Az általunk továbbiakban használt csoportok az úgynevezett klikk perkolációs algoritmussal \cite{tamas_gabor_tdk} \iffalse TODO: kell ez? \fi lettek feltérképezve. % TODO: vagy másik cikk
+Ezután készítünk egy hisztogramot, még pedig úgy, hogy a csoportok átlagéletkoraira centrált Gauss-görbéket összegezzük az összes csoportra, tehát egy diszkrét konvolúciót végzünk el \eqref{diszkret_konv}.
 \begin{equation} \label{simito_gauss}
 	g(x) = \frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{x^2}{2\sigma^2}}
 \end{equation}
 \begin{equation} \label{diszkret_konv}
-	K(a) = \sum_{i=1}^{C} g(a-a_i) \cdot p(n_{i}, \sigma_{i}) % TODO: kell-e részletezni, hogy ez miért konv.? illetve a simított életkoreloszlással való leosztás
-\end{equation}
-Az \iffalse TODO: Az-A \fi (\ref{simito_gauss}) képlet egy normált Gauss-görbe, amelynek a szórásparamétere $\sigma$. A \iffalse Az-A \fi (\ref{diszkret_konv}) képletben $a$ az életkort jelöli, $C$ a csoportok számát, $a_i$ az i. csoport átlagéletkorát, $p$ pedig egy súlyfaktort, amely függhet az adott csoport nagyságától ($n_{i}$) és a csoporton belüli életkorok szórásától ($\sigma_i$). Alapesetben $p=1$, ekkor nem vesszük figyelembe a csoportok minőségét\iffalse TODO: milyenségét \fi. Alább \aref{hisztogram_pelda}. ábrán láthatunk egy példát a $K(a)$ függvényre.
+	K(a) = \frac{1}{n_{sm}(a)}\sum_{i=1}^{C} g(a-a_i) \cdot s(n_{i}, \sigma_{i}) % illetve a simított életkoreloszlással való leosztás
+\end{equation} % TODO: miért kell a simítás, egy-egy egyénre lehet, hogy nem az a jó, mint az összesre, 
+\Aref{simito_gauss}. képlet egy normált Gauss-függvény, amelynek a szórásparamétere $\sigma$. \Aref{diszkret_konv}. képletben $a$ az életkort jelöli, $C$ a csoportok számát, $a_i$ az i. csoport átlagéletkorát, $s$ pedig egy súlyfaktort, amely függhet az adott csoport nagyságától ($n_{i}$) és a csoporton belüli életkorok szórásától ($\sigma_i$). Alapesetben $s=1$, ekkor nem vesszük figyelembe a csoportok milyenségét\iffalse TODO: minőségét \fi. A szumma előtti $n_{sm}$ egy normált, simított életkoreloszlás függvény, amellyel azért osztunk le, hogy kompenzáljuk a középkorúak felülreprezentáltságát a hálózatban. 
+A konvolúció (alapesetben) $\sigma = 2$-es Gauss-al simítja el a csoport-átlagéletkor eloszlást, ami azért jó, mert így a közeli átlagéletkorú csoportok száma átlagolódik, súlyozva az évkülönbséggel. \iffalse TODO: ez lehet nem túl világos \fi Alább \aref{hisztogram_pelda}. ábrán láthatunk egy példát a $K(a)$ függvényre. A függvényt csak egész évű pontokban értékeltük ki.
 \begin{figure}[H]
 	\centering
-	%\includegraphics[scale=1.0]{}
-	\caption{Hisztogram} % TODO: bővebb aláírás
+	\includegraphics[scale=0.8]{img/82152624_age47.eps}
+	\caption{Példa hisztogram} % TODO: bővebb aláírás
 	\label{hisztogram_pelda}
 \end{figure}
-\subsection{Optimalizáció jelentése}
+A hisztogramokon csúcsok találhatóak, amelyek azt jelentik, hogy van olyan csoport, amelynek átlagéletkora a csúcs helyén van. Minél nagyobb a csúcs, annál több ilyen csoport van. Ez alapján a vizsgált személy életkorát a legmagasabb csúcs helyével becsülhetnénk. Azonban nem mindegyik hisztogram olyan egyszerű, mint \aref{hisztogram_pelda}. ábrán látható, sokszor több csúcs hasonló nagyságú, ekkor érdemes figyelembe venni a csúcsok félértékszélességét. Definiálhatunk egy csúcs jósági tényezőt \aref{csucs_josag}. képlet szerint:
+\begin{equation} \label{csucs_josag}
+	v = \frac{h}{\textnormal{FWHM}},
+\end{equation}
+ahol $h$ a csúcs magassága, $\textnormal{FWHM}$ a csúcs félértékszélessége. Tehát minél magasabb és minél keskenyebb egy csúcs, annál jobb. Ezek után a program sorba rendezi a csúcsokat $v$ szerint és a legnagyobb $v$ értékkel rendelkezőt választja becsült életkornak.
+
+\subsection{Paraméterek a becslés során}
+Az életkor meghatározása során használunk különböző paramétereket, ilyenek például a Gauss-függvényben \eqref{simito_gauss} a $\sigma$\iffalse TODO: na jó nem biztos, hogy így szép \fi, illetve \aref{diszkret_konv}. képletben lévő $s(n_i, \sigma_i)$-ből származtatott paraméterek. Alapesetben $\sigma = 2$, $s = 1$, ezt optimalizálatlan esetnek nevezhetjük.
+
+Többféleképpen is lehet definiálni paramétereket. Feloszthatjuk az $(n_i, \sigma_i)$ teret \iffalse TODO: vagy mit \fi tartományokra és az egyes tartományokon alkalmazott súlyok lesznek a paraméterek. A felosztást \aref{felosztas}. táblázat szerint végeztem, illetve külön vettem a $\sigma_{cs} = 0$ esetet. %TODO: befejezni%
+\begin{table}[H]
+	\centering
+	\setstretch{1.5}
+	\begin{tabular}{|c|c|c|c|}
+		\hline
+		\diagbox{$\sigma_{cs}$}{$n_{cs}$} & $]0;5]$ & $]5;10]$ & $]10;\infty[$  \\
+		\hline
+		$]0;3]$ & $p_1$ & $p_2$ & $p_3$ \\
+		\hline
+		$]3;6]$ & $p_4$ & $p_5$ & $p_6$ \\
+		\hline
+		$]6;\infty[$  & $p_7$ & $p_8$ & $p_9$ \\
+		\hline
+	\end{tabular}
+	\caption{A különböző tartományokban alkalmazott súlyok}
+	\label{felosztas}
+\end{table}
+\noindent
+Ha $\sigma_{cs} = 0$ és $n_{cs} = 1$, akkor a súlyfaktor $s = p_{10}$, ha $\sigma_{cs} = 0$ és $n_{cs} > 1$, akkor a súly $s = p_{11}$, $\sigma$ pedig $p_{12}$-vel egyenlő. A $\sigma_{cs} = 0$ eset külön vételére azért van szükség, mert nagyon sok csoportban csak egy embernek ismert az életkora, emiatt annak a szórása $0$. Az $n_{cs}$ ebben az esetben nem a tényleges csoport méret, hanem azoknak az embereknek a száma, akiknek ismert az életkora a csoportban, a vizsgált személyt nem számolva.
+A fenti a paraméterek egy $\mathbf{p} = (p_1, p_2, ..., p_{12})$ vektorba rendezhetőek.
+
+% TODO: miért így osztottam fel
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=1.0]{img/group_sizes_iwiw100.eps}
+	\caption{Csoportok száma a csoportméret ($n_{cs}$) függvényében}
+\end{figure}
+% TODO: negatív paraméterek?
+
+\subsection{Sikerességi ráták}
+Ha a becslés pontosságát, sikerességét számokban akarjuk kifejezni, akkor a valódi és a becsült életkor közötti különbséget használhatjuk fel. A programot lefuttatom az összes személyre, akinek tudjuk az életkorát, majd megnézem, hogy a becslések hány százalékában volt a becsült és a valós korok közti eltérés $\pm 1, 2,3,4,5$. Optimalizálatlan esetben a sikerességek \aref{telefon_sikeresseg_nemopt}. és \aref{iwiw_sikeresseg_nemopt}. táblázatban foglaltak szerint alakulnak.
+\begin{table}[H]
+	\centering
+	\setstretch{1.5}
+	\begin{tabular}{|c|c|}
+		\hline
+		Hiba (év) & Ismerősszám: 60-69 \\
+		\hline
+		$\pm 1$ & 22,7 \% \\
+		\hline
+		$\pm 2$ & 35,4 \% \\
+		\hline
+		$\pm 3$ & 45,0 \% \\
+		\hline
+		$\pm 4$ & 52,2 \% \\
+		\hline
+		$\pm 5$ & 57,8 \% \\
+		\hline
+	\end{tabular}
+	\caption{Sikerességek a telefonos adatok esetében}
+	\label{telefon_sikeresseg_nemopt}
+\end{table}
+\begin{table}[H]
+	\centering
+	\setstretch{1.5}
+	\begin{tabular}{|c|c|c|c|c|}
+		\hline
+		\multirow{2}{*}{Hiba (év)} & \multicolumn{4}{|c|}{Ismerősszám} \\ \cline{2-5} & 50 & 100 & 200 & 300 \\
+		\hline
+		$\pm 1$ & 39,4 \% & 53,2 \% & 63,8 \% & 67,5 \% \\
+		\hline
+		$\pm 2$ & 48,8 \% & 63,5 \% & 76,4 \% & 80,7 \% \\
+		\hline
+		$\pm 3$ & 54,5 \% & 68,7 \% & 80,7 \% & 84,8 \% \\
+		\hline
+		$\pm 4$ & 57,7 \% & 71,7 \% & 83,2 \% & 87,0 \% \\
+		\hline
+		$\pm 5$ & 60,6 \% & 74,0 \% & 84,9 \% & 88,5 \% \\
+		\hline
+	\end{tabular}
+	\caption{Sikerességek az iWiW-es adatok esetében}
+	\label{iwiw_sikeresseg_nemopt}
+\end{table}
+
+\subsection{Kiértékelési idő}
+
+
 \section{Optimalizációs módszerek}
+Egyszerű esetben az optimalizáció egy függvény minimum- vagy maximumhelyének megkeresését jelenti egy bizonyos tartományon \cite{Holder}. \iffalse TODO: példa a prog opt.-ról? \fi Ez azért lehet nehéz feladat, mert a függvényt kiértékelni egy pontban sokáig tarthat. Nagyon sok idő lenne az értelmezési tartomány egészére kiértékelni a függvényt.
+
+Ebben a fejezetben különböző optimalizációs módszerek alapját próbáltam ki azzal a céllal, hogy az $E(\mathbf{p})$ függvényt maximalizáljam. Tehát az életkorbecslés ($\pm 2$ éven belüli) sikerességi hányadosát növeljem.
 \subsection{Gradiens módszer}
+% https://en.wikipedia.org/wiki/Gradient_descent
 \subsection{Szimulált hűtés}
 \subsection{Genetikus algoritmus}
+\subsection{Futási idők}
 \section{Eredmények}
 \section{Összegzés}
-\begin{thebibliography}{9}
-	\bibitem{tamas_gabor_tdk}
-	TDK % TODO: rendesen hivatkozni
-\end{thebibliography}
+
+%\renewbibmacro{in:}{}
+%\printbibliography[title={Irodalomjegyzék}]
+\bibliography{bibliography}
 \end{document}
