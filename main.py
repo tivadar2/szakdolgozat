@@ -14,9 +14,6 @@ import gzip
 import re
 
 
-global ages
-
-
 def get_nice_string(list_or_iterator):
     return "[" + ", ".join( str(x) for x in list_or_iterator) + "]"
 
@@ -128,12 +125,12 @@ class MyApplication(object):
         self.allAges = {}
         self.groups_of_ego = {}
         self.egos = []
-        self.smoothedAgeDistr = []
+        self.smoothedAgeDistribution = []
         self.class_egos = []
-        self.class_egos = load_obj('class_egos')
+        self.q = 2
 
         # Paraméterek
-        self.params = np.array([1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1])
+        self.params = np.array([1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1])
         #self.params = np.array([6.7747038649, 7.71053429695, 0.379544637336, 3.19092356402, 3.96399904303, -4.47303253856, 3.49076237822,
          #1.71134368002, 2.67, 4.32734474146, 8.22419206133])
 
@@ -141,6 +138,8 @@ class MyApplication(object):
         x = np.linspace(0, 80, 81)
         matrix = np.empty((len(ego.groups), 81))
         for num, g in enumerate(ego.groups):
+            if g.averageAge < 0:
+                continue
             # if sigma == 0:
             # devs[0] += 1  # 589 ezer ilyen van!!!
             sigma = g.deviation
@@ -168,13 +167,12 @@ class MyApplication(object):
             elif 3 < sigma <= 6 and 10 < groupSize:
                 suly = self.params[7]
             elif 6 < sigma and 10 < groupSize:
-                # suly = self.params[8]
-                suly = 1
+                suly = self.params[11]
 
             matrix[num] = suly*np.exp(-np.square(x - g.averageAge) / (2 * self.params[8]*self.params[8]))
 
-        # print(len(ego.groups))
-        K = matrix.sum(axis=0)  #/ages
+        K = matrix.sum(axis=0)/self.smoothedAgeDistribution
+
         # plt.plot(x, K)
         # plt.show()
         return K
@@ -222,8 +220,15 @@ class MyApplication(object):
             print(peak_age, peak_v)
         best_peak_index = peak_v.index(max(peak_v))  # TODO: ha nem talál csúcsot, akkor mit tegyen? 104840 - üres fájl
         estimated_age = peak_age[best_peak_index]
-        # estimated_age = min(peak_age, key=lambda x: abs(x - ego.realAge)) # 50.7%-ig megy így
+        # estimated_age = min(peak_age, key=lambda x: abs(x - ego.realAge))  # 50.7%-ig megy így
         # TODO: csúcskiválasztás javítása
+        # if math.fabs(estimated_age - ego.realAge) <= 2:
+        #    if ego.ID == 82152624:
+        #        with open("histogram_egycsucs.txt", "w+") as file:
+        #            for i in range(81):
+        #                print(i, K[i], file=file)
+        #        plt.plot(np.linspace(0, 80, 81), K)
+        #        plt.show()
         return estimated_age
 
     def read_groups_from_dots(self):
@@ -252,8 +257,11 @@ class MyApplication(object):
         pm5 = 0
         if parameters is not None:
             self.params = parameters
+        for i in range(len(self.params)):  # ne legyen negatív súly
+            if self.params[i] < 0:
+                self.params[i] = 0
         shuffle(self.class_egos)
-        for ego in self.class_egos[:len(self.class_egos)//1]:
+        for ego in self.class_egos[:len(self.class_egos)//self.q]:
             estimated_age = self.estimate_age(ego)
             ego.estimatedAge = estimated_age
             if estimated_age == -1:
@@ -270,12 +278,12 @@ class MyApplication(object):
             if diff <= 25:
                 pm5 += 1
 
-        print("pm1", pm1/(len(self.class_egos)//1))
-        print("pm2", pm2 / (len(self.class_egos) // 1))
-        print("pm3", pm3 / (len(self.class_egos) // 1))
-        print("pm4", pm4 / (len(self.class_egos) // 1))
-        print("pm5", pm5 / (len(self.class_egos) // 1))
-        return pm2/(len(self.class_egos)//1)
+        print("pm1", pm1/(len(self.class_egos)//self.q))
+        print("pm2", pm2 / (len(self.class_egos) // self.q))
+        print("pm3", pm3 / (len(self.class_egos) // self.q))
+        print("pm4", pm4 / (len(self.class_egos) // self.q))
+        print("pm5", pm5 / (len(self.class_egos) // self.q))
+        return pm2/(len(self.class_egos)//self.q)
 
     def calc_derivative(self, x):
         grad = np.zeros(x.size)
@@ -343,8 +351,8 @@ class MyApplication(object):
                       + " " + get_nice_string(population.best_params[i]), file=file)
 
     def gradient_method(self):
-        self.params = np.array(
-            [1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1])  # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
+        #self.params = np.array(
+        #    [1, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1])  # opt, mint optimal, de az algoritmus végén lesz (/lehet) optimális
         gamma = 1
 
         grad = self.calc_derivative(self.params)
@@ -401,9 +409,11 @@ if __name__ == '__main__':
     for age in range(81):
         aaa += (1/(math.sqrt(2*math.pi)*2))*np.exp(-np.square(x - age)/(2*4))*ages[age]
     ages = aaa/90000
+    """
+
     # plt.plot(np.linspace(0, 80, 81), aaa)
     # plt.show()
-
+    """
     class_egos = []
     count = 0
     for ego in egos:
@@ -440,16 +450,41 @@ if __name__ == '__main__':
     """
 
     app = MyApplication()
-    app.class_egos = load_obj('iwiw_200_class_egos')
-    # app.estimate_age()
+    app.smoothedAgeDistribution = load_obj("smoothAgeDistribution_iwiw_sigma2")
+    app.class_egos = load_obj('iwiw_300_class_egos')
+    # app.class_egos = load_obj('class_egos')
+    """
+    group_sizes = [0]*301
+    for class_ego in app.class_egos:
+        for group in class_ego.groups:
+            group_sizes[group.groupSize] += 1
+    plt.plot(np.linspace(0, 20, 21), group_sizes[:21])
+    plt.show()
+
+    group_devs = [0] * 21
+    for class_ego in app.class_egos:
+        for group in class_ego.groups:
+            if group.deviation == 0:
+                group_devs[0] += 1
+                continue
+            for i in range(1, 21):
+                if (i-1) < group.deviation <= i:
+                    group_devs[i] += 1
+                    continue
+    plt.plot(np.linspace(0, 20, 21), group_devs[:21])
+    plt.show()
+    """
+    #app.params = np.array([1.22273272, 0.87814622, -0.57510987, 1.20235717, 1.04234918, 0.18717539,
+    #                       1.05593288, 1.01957651, 1.88473831, 0.38054335, 1.22493008])
 
     if len(sys.argv) == 1:
         start = time.time()
         # app.params = [6.7747038649, 7.71053429695, 0.379544637336, 3.19092356402, 3.96399904303, -4.47303253856, 3.49076237822, 1.71134368002, 14.2718478954, 4.32734474146, 8.22419206133]
-        app.estimate_all_ages()
+        print(app.estimate_all_ages())
         print(app.params)
         end = time.time()
         print(end-start)
+        """
         ego_set = set()
         with open("tamas_pred/predictions_200.dat") as file:
             lines = file.readlines()
@@ -483,6 +518,7 @@ if __name__ == '__main__':
             allOfThem += 1
             print(ego.ID, ego.realAge, ego.estimatedAge)
         print(allOfThem, howManySuccesful)
+        """
     else:
         if sys.argv[1] == 'grad':
             app.gradient_method()
@@ -490,7 +526,9 @@ if __name__ == '__main__':
             # python3 main.py sa #cycles #start=fix,random #no
             app.simulated_annealing(int(sys.argv[2]), sys.argv[3], int(sys.argv[4]))
         elif sys.argv[1] == 'ga':
-            # python3 main.py ga #population_size #generation #mutation
+            # python3 main.py ga #population_size #generation #mutation #which_egos #q
+            app.class_egos = load_obj(sys.argv[5])
+            app.q = int(sys.argv[6])
             app.genetic_algorithm(int(sys.argv[2]), int(sys.argv[3]), float(sys.argv[4]))
 
     # start = time.time()

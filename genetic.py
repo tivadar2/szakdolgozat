@@ -23,7 +23,7 @@ class Population(object):
         self.best_fitnesses = []
         self.best_params = []
         if individuals is None:
-            self.individuals = [Individual(self.fitnessFunction, args=11) for i in range(n)]
+            self.individuals = [Individual(self.fitnessFunction, args=12) for i in range(n)]
             self.n = n
         else:
             self.individuals = individuals
