@@ -21,7 +21,6 @@
 %\usepackage[backend=biber]{biblatex}
 %\addbibresource{bibliography.bib}
 
-
 \begin{document}
 
 % TODO: komplexitásszerű dolgok leírása, hányszor kell fitness-t számolni, a különböző módszereknél
@@ -110,53 +109,60 @@ Az életkor meghatározásához alapvetően egy szociális hálózatot használu
 
 % TODO: adatbázisok
 \subsection{Optimizálatlan életkor-meghatározás} \label{eletkor_becsles_tamas_gabor}
-Ebben az alrészben (\ref{eletkor_becsles_tamas_gabor}) a \cite{tamas_gabor_tdk} TDK dolgozatban leírt életkorbecslő eljárást ismertetem, amely alapul szolgál ezen szakdolgozatnak.
+Ebben az alrészben a \cite{tamas_gabor_tdk} TDK dolgozatban leírt életkorbecslő eljárást ismertetem, amely alapul szolgál ezen szakdolgozatnak.
 
-Az embereket jól jellemzik a közösségek, amelyeknek tagjai. Ilyenek például az osztályok, a családok, a munkatársi vagy baráti körök. Egy kiválasztott egyén életkora összefüggésbe hozható a közösségei átlagéletkoraival. Ez az összefüggés nem triviális, viszont felhasználható a vizsgált személy korának meghatározásához. Ehhez először fel kell térképezni a közösségeket a hálózatban, ami nem egyértelmű feladat. Létezik \iffalse TODO: létezik helyett valami más szó \fi többfajta közösségfelismerő algoritmus, melyek megpróbálják az ember által elképzelt közösségképet felhasználni a kereséshez, illetve a hálózat esetleges hibáit is figyelembe venni (például hiányzó élek vagy csúcsok). Az általunk továbbiakban használt csoportok az úgynevezett klikk perkolációs algoritmussal \cite{tamas_gabor_tdk} \iffalse TODO: kell ez? \fi lettek feltérképezve. % TODO: vagy másik cikk
-Ezután készítünk egy hisztogramot, még pedig úgy, hogy a csoportok átlagéletkoraira centrált Gauss-görbéket összegezzük az összes csoportra, tehát egy diszkrét konvolúciót végzünk el \eqref{diszkret_konv}.
+Az embereket jól jellemzik a közösségek, amelyeknek tagjai. Ilyenek például az osztályok, a családok, a munkatársi vagy baráti körök. Egy kiválasztott egyén életkora összefüggésbe hozható a közösségei átlagéletkoraival. Ez az összefüggés nem triviális, viszont felhasználható a vizsgált személy korának meghatározásához. Ehhez először fel kell térképezni a közösségeket a hálózatban, ami nem egyértelmű feladat. Létezik \iffalse TODO: létezik helyett valami más szó \fi többfajta közösségfelismerő algoritmus, melyek megpróbálják az ember által elképzelt közösségképet felhasználni a kereséshez, illetve a hálózat esetleges hibáit is figyelembe venni (például hiányzó élek vagy csúcsok). Az általunk továbbiakban használt csoportok az úgynevezett Ahn-módszerrel \cite{tamas_gabor_tdk} \iffalse TODO: kell ez? \fi lettek feltérképezve. % TODO: vagy másik cikk
+Ezután készítettünk egy Gauss-függvénnyel \eqref{simito_gauss} simított hisztogramot, amit az életkoráloszlás ugyanolyan Gauss-függvénnyel simított függvényével normáltunk \eqref{diszkret_konv}:
+%Ezután készítünk egy hisztogramot, még pedig úgy, hogy a csoportok átlagéletkoraira centrált Gauss-görbéket összegezzük az összes csoportra, tehát egy diszkrét konvolúciót végzünk el \eqref{diszkret_konv}.
 \begin{equation} \label{simito_gauss}
 	g(x) = \frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{x^2}{2\sigma^2}}
 \end{equation}
 \begin{equation} \label{diszkret_konv}
 	K(a) = \frac{1}{n_{sm}(a)}\sum_{i=1}^{C} g(a-a_i) \cdot s(n_{i}, \sigma_{i}) % illetve a simított életkoreloszlással való leosztás
 \end{equation} % TODO: miért kell a simítás, egy-egy egyénre lehet, hogy nem az a jó, mint az összesre, 
-\Aref{simito_gauss}. képlet egy normált Gauss-függvény, amelynek a szórásparamétere $\sigma$. \Aref{diszkret_konv}. képletben $a$ az életkort jelöli, $C$ a csoportok számát, $a_i$ az i. csoport átlagéletkorát, $s$ pedig egy súlyfaktort, amely függhet az adott csoport nagyságától ($n_{i}$) és a csoporton belüli életkorok szórásától ($\sigma_i$). Alapesetben $s=1$, ekkor nem vesszük figyelembe a csoportok milyenségét\iffalse TODO: minőségét \fi. A szumma előtti $n_{sm}$ egy normált, simított életkoreloszlás függvény, amellyel azért osztunk le, hogy kompenzáljuk a középkorúak felülreprezentáltságát a hálózatban. 
-A konvolúció (alapesetben) $\sigma = 2$-es Gauss-al simítja el a csoport-átlagéletkor eloszlást, ami azért jó, mert így a közeli átlagéletkorú csoportok száma átlagolódik, súlyozva az évkülönbséggel. \iffalse TODO: ez lehet nem túl világos \fi Alább \aref{hisztogram_pelda}. ábrán láthatunk egy példát a $K(a)$ függvényre. A függvényt csak egész évű pontokban értékeltük ki.
+\Aref{simito_gauss}. képlet egy normált Gauss-függvény, amelynek a szórásparamétere $\sigma$. \Aref{diszkret_konv}. képletben $a$ az életkort jelöli, $C$ a csoportok számát, $a_i$ az i. csoport átlagéletkorát, $s$ pedig egy súlyfaktort, amely függhet az adott csoport nagyságától ($n_{i}$) és a csoporton belüli életkorok szórásától ($\sigma_i$).
+
+A legegyszerűbb eset, amikor $s\equiv 1$, ekkor nem vesszük figyelembe a csoportok tulajdonságait.
+A szumma előtti $n_{sm}$ egy normált, simított életkoreloszlás függvény, amellyel azért osztunk le, hogy kompenzáljuk a középkorúak felülreprezentáltságát a hálózatban.
+A simításhoz használt Gauss-függvény szórását \acite{tamas_gabor_tdk} TDK munkában $\sigma=2$-nek választották. \iffalse TODO: ez lehet nem túl világos \fi \Aref{hisztogram_pelda}. ábrán láthatunk egy példát a $K(a)$ függvényre. A függvényt csak egész évű pontokban értékeltük ki.
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.8]{img/82152624_age47.eps}
 	\caption{Példa hisztogram} % TODO: bővebb aláírás
 	\label{hisztogram_pelda}
 \end{figure}
-A hisztogramokon csúcsok találhatóak, amelyek azt jelentik, hogy van olyan csoport, amelynek átlagéletkora a csúcs helyén van. Minél nagyobb a csúcs, annál több ilyen csoport van. Ez alapján a vizsgált személy életkorát a legmagasabb csúcs helyével becsülhetnénk. Azonban nem mindegyik hisztogram olyan egyszerű, mint \aref{hisztogram_pelda}. ábrán látható, sokszor több csúcs hasonló nagyságú, ekkor érdemes figyelembe venni a csúcsok félértékszélességét. Definiálhatunk egy csúcs jósági tényezőt \aref{csucs_josag}. képlet szerint:
+A hisztogramokon csúcsok találhatóak, amelyek azt jelentik, hogy több csoportban ugyanaz az átlagéletkor. Minél nagyobb a csúcs, annál több ilyen csoport van. Ez alapján a vizsgált személy életkorát a legmagasabb csúcs helyével becsülhetnénk. Azonban nem mindegyik hisztogram olyan egyszerű, mint \aref{hisztogram_pelda}. ábrán látható, sokszor több csúcs hasonló nagyságú, ekkor érdemes figyelembe venni a csúcsok félértékszélességét. Definiálhatunk egy csúcs jósági tényezőt \aref{csucs_josag}. képlet szerint:
 \begin{equation} \label{csucs_josag}
-	v = \frac{h}{\textnormal{FWHM}},
+	v = \frac{h}{w},
 \end{equation}
-ahol $h$ a csúcs magassága, $\textnormal{FWHM}$ a csúcs félértékszélessége. Tehát minél magasabb és minél keskenyebb egy csúcs, annál jobb. Ezek után a program sorba rendezi a csúcsokat $v$ szerint és a legnagyobb $v$ értékkel rendelkezőt választja becsült életkornak.
+ahol $h$ a csúcs magassága, $w$ a csúcs félértékszélessége. Tehát minél magasabb és minél keskenyebb egy csúcs, annál jobb. Ezek után a program sorba rendezi a csúcsokat $v$ szerint és a legnagyobb $v$ értékkel rendelkezőt választja becsült életkornak.
 
 \subsection{Paraméterek a becslés során}
-Az életkor meghatározása során használunk különböző paramétereket, ilyenek például a Gauss-függvényben \eqref{simito_gauss} a $\sigma$\iffalse TODO: na jó nem biztos, hogy így szép \fi, illetve \aref{diszkret_konv}. képletben lévő $s(n_i, \sigma_i)$-ből származtatott paraméterek. Alapesetben $\sigma = 2$, $s = 1$, ezt optimalizálatlan esetnek nevezhetjük.
+Az életkor meghatározása során használunk különböző paramétereket, ilyenek például a Gauss-függvényben \eqref{simito_gauss} a $\sigma$\iffalse TODO: na jó nem biztos, hogy így szép \fi, illetve \aref{diszkret_konv}. képletben lévő $s(n_i, \sigma_i)$-ből származtatott paraméterek. \Acite{tamas_gabor_tdk} munkában $\sigma=2$, $s=1$ választást használjuk kiindulópontnak, és
+ezt optimalizálatlan esetnek nevezzük.
 
-Többféleképpen is lehet definiálni paramétereket. Feloszthatjuk az $(n_i, \sigma_i)$ teret \iffalse TODO: vagy mit \fi tartományokra és az egyes tartományokon alkalmazott súlyok lesznek a paraméterek. A felosztást \aref{felosztas}. táblázat szerint végeztem, illetve külön vettem a $\sigma_{cs} = 0$ esetet. %TODO: befejezni%
+Többféleképpen is lehet definiálni paramétereket. Feloszthatjuk az $(n_i, \sigma_i)$ teret \iffalse TODO: vagy mit \fi tartományokra és az egyes tartományokon alkalmazott súlyok lesznek a paraméterek. A felosztást \aref{felosztas}. táblázat szerint végeztem, ebben külön vettem a $\sigma_{cs} = 0$ esetet. %TODO: befejezni%
 \begin{table}[H]
 	\centering
 	\setstretch{1.5}
-	\begin{tabular}{|c|c|c|c|}
+	\begin{tabular}{|c|c|c|c|c|} % TODO: esetleg más tartományjelölés pl {1}, {2, 3, 4, 5}
 		\hline
-		\diagbox{$\sigma_{cs}$}{$n_{cs}$} & $]0;5]$ & $]5;10]$ & $]10;\infty[$  \\
+		\diagbox{$\sigma_{cs}$}{$n_{cs}$} & $]0;1]$ & $]1;5]$ & $]5;10]$ & $]10;\infty[$  \\
 		\hline
-		$]0;3]$ & $p_1$ & $p_2$ & $p_3$ \\
+		$0$ & $p_{10}$ & \multicolumn{3}{|c|}{$p_{11}$} \\
 		\hline
-		$]3;6]$ & $p_4$ & $p_5$ & $p_6$ \\
+		$]0;3]$ & \multicolumn{2}{|c|}{$p_1$} & $p_2$ & $p_3$ \\
 		\hline
-		$]6;\infty[$  & $p_7$ & $p_8$ & $p_9$ \\
+		$]3;6]$ & \multicolumn{2}{|c|}{$p_4$} & $p_5$ & $p_6$ \\
+		\hline
+		$]6;\infty[$  & \multicolumn{2}{|c|}{$p_7$} & $p_8$ & $p_9$ \\
 		\hline
 	\end{tabular}
 	\caption{A különböző tartományokban alkalmazott súlyok}
 	\label{felosztas}
 \end{table}
 \noindent
-Ha $\sigma_{cs} = 0$ és $n_{cs} = 1$, akkor a súlyfaktor $s = p_{10}$, ha $\sigma_{cs} = 0$ és $n_{cs} > 1$, akkor a súly $s = p_{11}$, $\sigma$ pedig $p_{12}$-vel egyenlő. A $\sigma_{cs} = 0$ eset külön vételére azért van szükség, mert nagyon sok csoportban csak egy embernek ismert az életkora, emiatt annak a szórása $0$. Az $n_{cs}$ ebben az esetben nem a tényleges csoport méret, hanem azoknak az embereknek a száma, akiknek ismert az életkora a csoportban, a vizsgált személyt nem számolva.
+A 12. paraméter pedig $p_{12} \equiv \sigma$, azaz a hisztogramsimítás erőssége. A $\sigma_{cs} = 0$ eset külön vételére azért van szükség, mert nagyon sok csoportban csak egy embernek ismert az életkora, emiatt annak a szórása $0$. Az $n_{cs}$ ebben az esetben nem a tényleges csoport méret, hanem azoknak az embereknek a száma, akiknek ismert az életkora a csoportban, a vizsgált személyt nem számolva.
 A fenti a paraméterek egy $\mathbf{p} = (p_1, p_2, ..., p_{12})$ vektorba rendezhetőek.
 
 % TODO: miért így osztottam fel
@@ -231,6 +237,7 @@ Egyszerű esetben az optimalizáció egy függvény minimum- vagy maximumhelyén
 Ebben a fejezetben különböző optimalizációs módszerek alapját próbáltam ki azzal a céllal, hogy az $E(\mathbf{p})$ függvényt maximalizáljam, tehát az életkorbecslés ($\pm 2$ éven belüli) sikerességi hányadosát növeljem.
 \subsection{Gradiens módszer}
 % https://en.wikipedia.org/wiki/Gradient_descent
+A gradiens módszer egy elsőrendű iterációs optimalizációs algoritmus. Adott egy $p_0$ kezdőpont és egy függvény, amelyet maximalizálni szeretnénk (megjegyzés: minimalizálásra is használják a módszer) \cite{gradient}
 \subsection{Szimulált hűtés}
 \subsection{Genetikus algoritmus}
 \subsection{Futási idők}
@@ -239,5 +246,5 @@ Ebben a fejezetben különböző optimalizációs módszerek alapját próbálta
 
 %\renewbibmacro{in:}{}
 %\printbibliography[title={Irodalomjegyzék}]
-\bibliography{bibliography}
+\bibliography{bibliography} % TODO: ISBN?
 \end{document}
