@@ -95,7 +95,6 @@ Budapest, 2017. 05. 25. \\ \\ \\ %TODO: Dátum pontosan
 \pagebreak
 \section{Bevezetés}
 \pagenumbering{arabic}
-\subsection{Motiváció}
 Napjainkban a felgyorsult információáramlás miatt rengeteg adat keletkezik rólunk, illetve környezetünkről az interneten. % TODO: vagy máshol is
 Hatalmas mennyiségről van szó, mely akár publikus is lehet, bár legtöbbször valamilyen jogi személy (például vállalatok, állam, szervezetek) birtokában áll. Az utóbbi években nagyon felkapott lett ezek feldolgozása, azaz, hogy ebből a sok adatból hasznos információkat lehessen leszűrni.
 % TODO: big data
@@ -109,6 +108,7 @@ Hatalmas mennyiségről van szó, mely akár publikus is lehet, bár legtöbbsz�
 \section{Az életkorbecslő eljárás} % TODO: hogyan hivatkozzak a TDK-ra? + más cím itt?
 Az életkor meghatározásához alapvetően egy szociális hálózatot használunk fel. Ezen belül úgynevezett egocentrikus hálózatot, amely már csak egy adott személy kapcsolatrendszerét tartalmazza. Az adatbázisban a kapcsolatok mellett az ismerősök életkorait tartalmazzák. Persze ezek az adatok hiányosak, vagy lehetnek hibásak is. A kapcsolati hálózat egy gráfként kezelhető, amelyben a csúcsok az embereknek, az élek pedig a köztük lévő ismeretségnek felelnek meg.
 
+% TODO: adatbázisok
 \subsection{Optimizálatlan életkor-meghatározás} \label{eletkor_becsles_tamas_gabor}
 Ebben az alrészben (\ref{eletkor_becsles_tamas_gabor}) a \cite{tamas_gabor_tdk} TDK dolgozatban leírt életkorbecslő eljárást ismertetem, amely alapul szolgál ezen szakdolgozatnak.
 
@@ -160,15 +160,25 @@ Ha $\sigma_{cs} = 0$ és $n_{cs} = 1$, akkor a súlyfaktor $s = p_{10}$, ha $\si
 A fenti a paraméterek egy $\mathbf{p} = (p_1, p_2, ..., p_{12})$ vektorba rendezhetőek.
 
 % TODO: miért így osztottam fel
+A paraméterek fentebb leírt módon való kiválasztása, azért is jó, mert a csoportméretet és a csoportszórást nem csak egymástól függetlenül tudjuk súlyozni, azaz $s(n_i, \sigma_i) \neq s'(n_i)\cdot s''(\sigma_i)$. Ezáltal például megkülönböztethetünk egy osztályt egy munkatársakból álló csoporttól. A csoportméret a kettőnél ugyanúgy nagy lehet, viszont az előbbinek a csoportszórása kisebb, ezért azt gondoljuk, hogy azt nagyobb súllyal kell figyelembe venni.
 \begin{figure}[H]
 	\centering
-	\includegraphics[scale=1.0]{img/group_sizes_iwiw100.eps}
-	\caption{Csoportok száma a csoportméret ($n_{cs}$) függvényében}
+	\begin{subfigure}{0.49\textwidth}
+		\includegraphics[scale=0.5]{img/group_sizes.eps}
+		\caption{Csoportok száma a csoportméret ($n_{cs}$) függvényében a különböző ismerősszámú hálózatok esetében}
+	\end{subfigure} \hfill
+	\begin{subfigure}{0.49\textwidth}
+		\includegraphics[scale=0.5]{img/group_devs.eps}
+		\caption{Csoportok száma a csoportszórás ($\sigma_{cs}$) függvényében a különböző ismerősszámú hálózatok esetében}
+	\end{subfigure}
+	\caption{Csoportok méret- és szóráseloszlásai}
+	\label{meret_szoras_eloszlas}
 \end{figure}
+Abban, hogy a paraméterek határait hol húzzuk meg \aref{meret_szoras_eloszlas}. ábra segített. Megpróbáltunk jellegzetes tartományokat kiválasztani, ebből lett \aref{felosztas}. táblázat szerinti felosztás. Emellett nem szerettünk volna sok paramétert se, mert az optimalizálásnál az nem előnyös. 
 % TODO: negatív paraméterek?
 
 \subsection{Sikerességi ráták}
-Ha a becslés pontosságát, sikerességét számokban akarjuk kifejezni, akkor a valódi és a becsült életkor közötti különbséget használhatjuk fel. A programot lefuttatom az összes személyre, akinek tudjuk az életkorát, majd megnézem, hogy a becslések hány százalékában volt a becsült és a valós korok közti eltérés $\pm 1, 2,3,4,5$. Optimalizálatlan esetben a sikerességek \aref{telefon_sikeresseg_nemopt}. és \aref{iwiw_sikeresseg_nemopt}. táblázatban foglaltak szerint alakulnak.
+Ha a becslés pontosságát, sikerességét számokban akarjuk kifejezni, akkor a valódi és a becsült életkor közötti különbséget használhatjuk fel. A becslést elvégezzük az összes személyre, akinek tudjuk az életkorát, majd megnézzük, hogy a becslések hány százalékában volt a becsült és a valós korok közti eltérés $\pm 1, 2,3,4,5$ év. Optimalizálatlan esetben a sikerességek \aref{telefon_sikeresseg_nemopt}. és \aref{iwiw_sikeresseg_nemopt}. táblázatban foglaltak szerint alakulnak.
 \begin{table}[H]
 	\centering
 	\setstretch{1.5}
@@ -218,7 +228,7 @@ Ha a becslés pontosságát, sikerességét számokban akarjuk kifejezni, akkor 
 \section{Optimalizációs módszerek}
 Egyszerű esetben az optimalizáció egy függvény minimum- vagy maximumhelyének megkeresését jelenti egy bizonyos tartományon \cite{Holder}. \iffalse TODO: példa a prog opt.-ról? \fi Ez azért lehet nehéz feladat, mert a függvényt kiértékelni egy pontban sokáig tarthat. Nagyon sok idő lenne az értelmezési tartomány egészére kiértékelni a függvényt.
 
-Ebben a fejezetben különböző optimalizációs módszerek alapját próbáltam ki azzal a céllal, hogy az $E(\mathbf{p})$ függvényt maximalizáljam. Tehát az életkorbecslés ($\pm 2$ éven belüli) sikerességi hányadosát növeljem.
+Ebben a fejezetben különböző optimalizációs módszerek alapját próbáltam ki azzal a céllal, hogy az $E(\mathbf{p})$ függvényt maximalizáljam, tehát az életkorbecslés ($\pm 2$ éven belüli) sikerességi hányadosát növeljem.
 \subsection{Gradiens módszer}
 % https://en.wikipedia.org/wiki/Gradient_descent
 \subsection{Szimulált hűtés}
