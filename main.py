@@ -127,10 +127,10 @@ class MyApplication(object):
         self.egos = []
         self.smoothedAgeDistribution = []
         self.class_egos = []
-        self.q = 2
+        self.q = 1
 
         # Paraméterek
-        self.params = np.array([1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1])
+        self.params = np.array([1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1], dtype=np.float32)
         #self.params = np.array([6.7747038649, 7.71053429695, 0.379544637336, 3.19092356402, 3.96399904303, -4.47303253856, 3.49076237822,
          #1.71134368002, 2.67, 4.32734474146, 8.22419206133])
 
@@ -278,11 +278,11 @@ class MyApplication(object):
             if diff <= 25:
                 pm5 += 1
 
-        print("pm1", pm1/(len(self.class_egos)//self.q))
-        print("pm2", pm2 / (len(self.class_egos) // self.q))
-        print("pm3", pm3 / (len(self.class_egos) // self.q))
-        print("pm4", pm4 / (len(self.class_egos) // self.q))
-        print("pm5", pm5 / (len(self.class_egos) // self.q))
+        #print("pm1", pm1/(len(self.class_egos)//self.q))
+        #print("pm2", pm2 / (len(self.class_egos) // self.q))
+        #print("pm3", pm3 / (len(self.class_egos) // self.q))
+        #print("pm4", pm4 / (len(self.class_egos) // self.q))
+        #print("pm5", pm5 / (len(self.class_egos) // self.q))
         return pm2/(len(self.class_egos)//self.q)
 
     def calc_derivative(self, x):
@@ -401,6 +401,7 @@ if __name__ == '__main__':
             continue
         allAges[id_birthdate[0]] = 2013 - id_birthdate[1]
 
+    allAges = load_obj("allAges")
     ages = np.zeros(81)
     for age in range(81):
         ages[age] = list(allAges.values()).count(age)
@@ -409,11 +410,11 @@ if __name__ == '__main__':
     for age in range(81):
         aaa += (1/(math.sqrt(2*math.pi)*2))*np.exp(-np.square(x - age)/(2*4))*ages[age]
     ages = aaa/90000
-    """
 
-    # plt.plot(np.linspace(0, 80, 81), aaa)
-    # plt.show()
-    """
+    save_obj(ages, "smoothAgeDistribution_tel_sigma2")
+    plt.plot(np.linspace(0, 80, 81), ages)
+    plt.show()
+
     class_egos = []
     count = 0
     for ego in egos:
@@ -451,7 +452,7 @@ if __name__ == '__main__':
 
     app = MyApplication()
     app.smoothedAgeDistribution = load_obj("smoothAgeDistribution_iwiw_sigma2")
-    app.class_egos = load_obj('iwiw_300_class_egos')
+    app.class_egos = load_obj('iwiw_50_class_egos')
     # app.class_egos = load_obj('class_egos')
     """
     group_sizes = [0]*301
@@ -481,6 +482,11 @@ if __name__ == '__main__':
         start = time.time()
         # app.params = [6.7747038649, 7.71053429695, 0.379544637336, 3.19092356402, 3.96399904303, -4.47303253856, 3.49076237822, 1.71134368002, 14.2718478954, 4.32734474146, 8.22419206133]
         print(app.estimate_all_ages())
+        #with open("param0.txt", "w+") as outfile:
+        #    for i in range(1, 100):
+        #        app.params[0] = i/10
+        #        print(i/10, app.estimate_all_ages())
+        #        print(i/10, app.estimate_all_ages(), file=outfile)
         print(app.params)
         end = time.time()
         print(end-start)

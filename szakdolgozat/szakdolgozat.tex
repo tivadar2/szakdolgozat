@@ -16,7 +16,7 @@
 \usepackage{setspace}
 \usepackage{diagbox}
 \usepackage{setspace}
-\usepackage{natbib}
+\usepackage[square,numbers]{natbib}
 \bibliographystyle{unsrt}
 %\usepackage[backend=biber]{biblatex}
 %\addbibresource{bibliography.bib}
@@ -225,8 +225,9 @@ Ha a becslés pontosságát, sikerességét számokban akarjuk kifejezni, akkor 
 		\hline
 	\end{tabular}
 	\caption{Sikerességek az iWiW-es adatok esetében}
-	\label{iwiw_sikeresseg_nemopt}
+	\label{iwiw_sikeresseg_nemopt} % TODO: átírni ezeket, mert koreloszlással leosztás
 \end{table}
+A sikerességet a továbbiakban a $\pm 2$ éven belüli becslések hányadosának vesszük. A későbbiekben erre a hibahatárra fogunk optimalizálni, ezért el is nevezzük $E(\mathbf{p})$-nek a $\pm 2$ éven belüli sikerességet.
 
 \subsection{Kiértékelési idő}
 
@@ -237,11 +238,63 @@ Egyszerű esetben az optimalizáció egy függvény minimum- vagy maximumhelyén
 Ebben a fejezetben különböző optimalizációs módszerek alapját próbáltam ki azzal a céllal, hogy az $E(\mathbf{p})$ függvényt maximalizáljam, tehát az életkorbecslés ($\pm 2$ éven belüli) sikerességi hányadosát növeljem.
 \subsection{Gradiens módszer}
 % https://en.wikipedia.org/wiki/Gradient_descent
-A gradiens módszer egy elsőrendű iterációs optimalizációs algoritmus. Adott egy $p_0$ kezdőpont és egy függvény, amelyet maximalizálni szeretnénk (megjegyzés: minimalizálásra is használják a módszer) \cite{gradient}
+A gradiens módszer \cite{gradient1, gradient2} egy elsőrendű iterációs optimalizációs algoritmus. Adott egy $\mathbf{x_0}$ kezdőpont és egy $F(\mathbf{x})$ függvény, amelyet maximalizálni\footnote{megjegyzés: minimalizálásra is használható a módszer} szeretnénk. A módszer lényege, hogy a kezdőpontban kiszámoljuk $F(\mathbf{x})$ gradiensét, majd ennek irányába mozdulunk el, úgy hogy az elmozdulás nagysága arányos $\nabla F(\mathbf{x})$-el.
+Az algoritmust úgy folytatjuk, hogy az elmozdulás utáni pontot vesszük kezdőpontnak és az előzőeket újra elvégezzük.
+Így a következő rekurzióval írható le a módszer:
+\begin{equation}
+	\mathbf {x}_{n+1}=\mathbf {x}_{n}+\gamma\nabla F(\mathbf {x}_{n}),\ n\geq 0,
+\end{equation}
+ahol $n$ az iterációszám, $\gamma$ egy konstans, mely függhetne $n$-től, de ezt most nem használjuk ki. 
+
+Elsőrendűnek nevezzük az algoritmust, mert a gradiens csak a függvény első parciális deriváltjait tartalmazza. Emiatt az algoritmus egyszerű, de gyors. Látható, hogyha $\gamma$ elég kicsi, akkor minden lépés után közelebb kerülünk egy lokális maximumhoz, ezt szemlélteti \aref{grad_contour}. ábra is.
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.5]{img/Gradient_descent.eps}
+	\caption{A gradiens módszer szemléltetése szintvonalak segítségével (forrás: \cite{grad_wiki})}
+	\label{grad_contour}
+\end{figure}
+
+Esetünkben $F \equiv E$, amelyet a $\mathbf{p}$ paraméterek terén értelmezünk. A deriválást is máshogy kell értelmeznünk, mert egyrészt numerikus számítást kell végezni, tehát a deriváltat a következőképpen közelíthetjük:
+\begin{equation}
+	\frac{\partial f(x)}{\partial x} \approx \frac{f(x+\Delta x) - f(x)}{\Delta x},
+\end{equation}
+ahol $\Delta x = 0,5$-nek választottuk. Ennek az az oka, hogy a sikeresség függvény nem sima, lehetnek benne kis lokális minimumok, mint az \aref{E_param1}. ábrán is látható. 
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{img/E_param0.eps}
+	\caption{Sikeresség a $p_1$ függvényében, a többi paraméter rögzített}
+	\label{E_param1}
+\end{figure}
+A $\Delta x$ ilyen nagy értékűnek választása nem lehet nagy pontossággal meghatározni a lokális maximum helyét.
+% TODO: determinisztikus, megállási feltétel
 \subsection{Szimulált hűtés}
+A szimulált hűtés (angolul: simulated annealing) \cite{simulated_annealing} egy sztochasztikus optimalizációs módszer, mely a nevét a fémmegmunkálásban alkalmazott technikáról kapta, amely során a fémet felmelegítik, majd lassan lehűtik, ezzel megnövelve benne a kristályok méretét és csökkentve a hibákat.
+
+Az szimulált hűtéshez definiálni kell egy hőmérsékletszerű paramétert, melyet $T$-vel jelölünk. Ezek után az algoritmus a következő lépésekkel írható le:
+\begin{enumerate} %\setlength\itemsep{1em}
+	\item Kezdőpont ($\mathbf{x}_0$) és hőmérséklet ($T$) választása
+	\item Véletlenszerű közeli pont választása ($\mathbf{x}$)
+	\item \begin{itemize}
+		\item Ha $E(\mathbf{x}) > E(\mathbf{x}_0) $, akkor $\mathbf{x}_0' \equiv \mathbf{x}$
+		\item egyébként $\displaystyle p = \exp\left(\dfrac{E(\mathbf{x}) - E(\mathbf{x}_0)}{T}\right)$ valószínűséggel $\mathbf{x}_0' \equiv \mathbf{x}$, különben $\mathbf{x}_0' \equiv \mathbf{x}_0$
+	\end{itemize}
+	\item Elölről kezdjük $\mathbf{x}_0'$ kezdőponttal
+\end{enumerate} %\\~\\
+Eközben a hőmérsékletet lassan csökkentjük.
+
+Két határesetet érdemes megvizsgálni: a $T \rightarrow \infty$ (magas hőmérséklet) és a $T \rightarrow 0$ (alacsony hőmérséklet) esetet. Az exponenciális kitevőjében mindig egy negatív szám áll, ezért ha $T \rightarrow \infty$, akkor $p \rightarrow 1$, ha pedig $T \rightarrow 0$, akkor $p \rightarrow 0$.
+Emiatt a kezdeti magas hőmérsékleten az algoritmus be tudja járni a paraméterteret, mert szinte biztosan rosszabb sikerességű helyre is mehet. Azonban a hőmérséklet lassú csökkentésével egyre kisebb az esély, hogy alacsonyabb függvényértékű helyre kerül a program. Zéró hőmérséklethez tartva pedig már csak a jobb megoldások felé mozdul el a program. 
+
+% TODO: hőmérsékletválasztás + indoklás, itt nem jó a sok paraméter
+
 \subsection{Genetikus algoritmus}
+\cite{genetic_algorithm} %TODO: több egyén! <-> grad/SA
 \subsection{Futási idők}
 \section{Eredmények}
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{img/genetic_100pop_mutation_tel.eps}
+\end{figure}
 \section{Összegzés}
 
 %\renewbibmacro{in:}{}
