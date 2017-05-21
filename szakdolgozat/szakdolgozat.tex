@@ -25,7 +25,6 @@
 
 % TODO: komplexitásszerű dolgok leírása, hányszor kell fitness-t számolni, a különböző módszereknél
 % TODO: margók
-% TODO: hogyan hivatkozzam az egész életkorbecslő dologra?
 % TODO: negatív csúcsok -> jobb v-jű lesz a többi csúcs?
 
 \begin{titlepage}
@@ -33,7 +32,8 @@
 	{\Huge\bfseries Szakdolgozat\par}
 	\vspace{1cm}
 	\vspace{1cm}
-	{\LARGE Életkor becslése szociális hálózatok gépi optimalizációs módszerekkel\par} % TODO: ez marad a cím?
+	{\LARGE Optimalizációs módszerek alkalmazása
+		az életkorbecslés problémára \par} % TODO: ez marad a cím? Életkor becslése szociális hálózatok gépi optimalizációs módszerekkel
 	\vspace{3cm}
 	{\huge\bfseries Pongó Tivadar\\\par}
 	\vspace{3cm}
@@ -87,7 +87,7 @@ Margók mérete a latex alapbeállítása?
 Alulírott Pongó Tivadar a Budapesti Műszaki és Gazdaságtudományi Egyetem fizika BSc szakos hallgatója kijelentem, hogy ezt a szakdolgozatot meg nem engedett segédeszközök nélkül, önállóan, a témavezető irányításával készítettem, és csak a megadott forrásokat használtam fel. \\
 Minden olyan részt, melyet szó szerint, vagy azonos értelemben, de átfogalmazva más forrásból vettem, a forrás megadásával jelöltem.\\\\
 Budapest, 2017. 05. 25. \\ \\ \\ %TODO: Dátum pontosan
-\hspace*{100mm}aláírás
+\hspace*{100mm}aláírás % TODO: ide nevet szoktak?
 \pagenumbering{gobble}
 \pagebreak
 \tableofcontents
@@ -95,16 +95,25 @@ Budapest, 2017. 05. 25. \\ \\ \\ %TODO: Dátum pontosan
 \section{Bevezetés}
 \pagenumbering{arabic}
 Napjainkban a felgyorsult információáramlás miatt rengeteg adat keletkezik rólunk, illetve környezetünkről az interneten. % TODO: vagy máshol is
-Hatalmas mennyiségről van szó, mely akár publikus is lehet, bár legtöbbször valamilyen jogi személy (például vállalatok, állam, szervezetek) birtokában áll. Az utóbbi években nagyon felkapott lett ezek feldolgozása, azaz, hogy ebből a sok adatból hasznos információkat lehessen leszűrni.
+Hétköznapi tevékenységeink során digitális nyomot hagyunk magunk után a néhány éve, évtizede létrejött információ- és kommunikációtechnológia alapú környezetekben.
+A különböző csatornákon folytatott kommunikációnk, pénzügyi tevékenységeink, a mobiltelefon szolgáltatónk által ismert fizikai elhelyezkedésünk stb., mind felvételre kerül.
+Ezen a sok passzívan gyűjtött adaton kívül gyakran aktívan is osztunk meg információkat érzéseinkről, hangulatunkról, véleményünkről és nézeteinkről.
+Azon kívül, hogy újszerű módon kaphatunk válaszokat az emberek szociális életét érintő klasszikus kérdésekre tudományos szempontból, ennek a hatalmas mennyiségű adat vizsgálatának hasznos alkalmazásai lehetnek. A feldolgozás után előrejelzéseket, becsléseket tehetünk különböző eseményekre a mindennapi életünk egyszerű ügyeitől kezdve akár globális méretű krízisekre is.
+Például fejlesztettek ki már olyan jelzőrendszert, mely tweeteket (a Twitter mikroblog szolgáltatás bejegyzései) használ fel földrengések észlelésére szinte valós időben \cite{sakaki2010earthquake}.
+Később kiegészítették a jelzőrendszerüket, úgy hogy szivárványok és városi dugók észlelésére is alkalmas legyen \cite{sakaki2013tweet}. Munkájuk gyakorlati jelentősége abban mutatkozik meg, hogy a jelzőrendszer olyan gyorsan reagálhat, hogy a jelzés előbb megérkezhet, mint a földrengés hullámai bizonyos területeken.
+Másik példa a Twitter bejegyzéseket használatára a választások eredményének jóslása \cite{tumasjan2010predicting}, melynek persze vannak határai \cite{gayo2011limits, gayo2012wanted}.
+Ginsberg és munkatársai megbecsülték az influenza terjedését az Egyesült Államokban \cite{ginsberg2009detecting}. Vannak egyéb példák is a szociális média felhasználására, hogy előrejelezzék hírek népszerűségét, a felhasználók által írt megjegyzések számában \cite{tsagkias2009predicting, tsagkias2010news} vagy a hírmegtekintések számában \cite{castillo2014characterizing} mérve.
+\cite{bigData_wikipedia}
+
+A szakdolgozatomban egy életkorbecslő módszert mutatok be, mely ugyanúgy sok adat feldolgozásán alapszik. A becslés az ember kapcsolati hálózata és az ismerősök életkorai alapján történik, és közel sem triviális. A fizikusok foglalkoznak komplex rendszerek vizsgálatával, ezáltal a szociális hálózatok tanulmányozása is érdekes feladatnak bizonyul számunkra. A célom a becslő módszer javítása gépi optimalizációs módszerekkel, ez manapság a mesterséges intelligencia terjedésével egy felkapott kutatási terület. % TODO: hivatkozás a 10%-ra?
+% Az adatok egy része egy telefonszolgáltatótól, a másik része az egykori magyar közösségi oldal, iWiW természetesen névtelenül.
 % TODO: big data
 % TODO: milyen nagyszerű dolgokat csináltak ezzel
 % TODO: én mit akarok ezzel csinálni (optimalizáció)
 % TODO: komplex rendszer, tehát fizikával összehasonlítható
 % TODO: erre akarok egy programot írni
 
-% TODO: E/1-ben írjak, vagy T/1-ben
-
-\section{Az életkorbecslő eljárás} % TODO: hogyan hivatkozzak a TDK-ra? + más cím itt?
+\section{Az életkorbecslő eljárás}
 Az életkor meghatározásához alapvetően egy szociális hálózatot használunk fel. Ezen belül úgynevezett egocentrikus hálózatot, amely már csak egy adott személy kapcsolatrendszerét tartalmazza. Az adatbázisban a kapcsolatok mellett az ismerősök életkorait tartalmazzák. Persze ezek az adatok hiányosak, vagy lehetnek hibásak is. A kapcsolati hálózat egy gráfként kezelhető, amelyben a csúcsok az embereknek, az élek pedig a köztük lévő ismeretségnek felelnek meg.
 
 % TODO: adatbázisok
@@ -227,7 +236,7 @@ Ha a becslés pontosságát, sikerességét számokban akarjuk kifejezni, akkor 
 	\caption{Sikerességek az iWiW-es adatok esetében}
 	\label{iwiw_sikeresseg_nemopt} % TODO: átírni ezeket, mert koreloszlással leosztás
 \end{table}
-A sikerességet a továbbiakban a $\pm 2$ éven belüli becslések hányadosának vesszük. A későbbiekben erre a hibahatárra fogunk optimalizálni, ezért el is nevezzük $E(\mathbf{p})$-nek a $\pm 2$ éven belüli sikerességet.
+A sikerességet a továbbiakban a $\pm 2$ éven belüli becslések hányadosának vesszük. A későbbiekben erre a hibahatárra fogunk optimalizálni, ezért el is nevezzük $E(\mathbf{p})$-nek a $\pm 2$ éven belüli sikerességet, amely egy $0$ és $1$ közötti szám.
 
 \subsection{Kiértékelési idő}
 
@@ -270,11 +279,11 @@ A $\Delta x$ ilyen nagy értékűnek választása nem lehet nagy pontossággal m
 \subsection{Szimulált hűtés}
 A szimulált hűtés (angolul: simulated annealing) \cite{simulated_annealing} egy sztochasztikus optimalizációs módszer, mely a nevét a fémmegmunkálásban alkalmazott technikáról kapta, amely során a fémet felmelegítik, majd lassan lehűtik, ezzel megnövelve benne a kristályok méretét és csökkentve a hibákat.
 
-Az szimulált hűtéshez definiálni kell egy hőmérsékletszerű paramétert, melyet $T$-vel jelölünk. Ezek után az algoritmus a következő lépésekkel írható le:
+Először definiálnunk kell egy hőmérsékletszerű paramétert, melyet $T$-vel jelölünk. Ezek után az algoritmus a következő lépésekkel írható le:
 \begin{enumerate} %\setlength\itemsep{1em}
 	\item Kezdőpont ($\mathbf{x}_0$) és hőmérséklet ($T$) választása
-	\item Véletlenszerű közeli pont választása ($\mathbf{x}$)
-	\item \begin{itemize}
+	\item Véletlenszerű közeli pont választása ($\mathbf{x}$) \label{veletlen_kozeli_pont}
+	\item \begin{itemize} % TODO: érthető-e?
 		\item Ha $E(\mathbf{x}) > E(\mathbf{x}_0) $, akkor $\mathbf{x}_0' \equiv \mathbf{x}$
 		\item egyébként $\displaystyle p = \exp\left(\dfrac{E(\mathbf{x}) - E(\mathbf{x}_0)}{T}\right)$ valószínűséggel $\mathbf{x}_0' \equiv \mathbf{x}$, különben $\mathbf{x}_0' \equiv \mathbf{x}_0$
 	\end{itemize}
@@ -283,12 +292,29 @@ Az szimulált hűtéshez definiálni kell egy hőmérsékletszerű paramétert, 
 Eközben a hőmérsékletet lassan csökkentjük.
 
 Két határesetet érdemes megvizsgálni: a $T \rightarrow \infty$ (magas hőmérséklet) és a $T \rightarrow 0$ (alacsony hőmérséklet) esetet. Az exponenciális kitevőjében mindig egy negatív szám áll, ezért ha $T \rightarrow \infty$, akkor $p \rightarrow 1$, ha pedig $T \rightarrow 0$, akkor $p \rightarrow 0$.
-Emiatt a kezdeti magas hőmérsékleten az algoritmus be tudja járni a paraméterteret, mert szinte biztosan rosszabb sikerességű helyre is mehet. Azonban a hőmérséklet lassú csökkentésével egyre kisebb az esély, hogy alacsonyabb függvényértékű helyre kerül a program. Zéró hőmérséklethez tartva pedig már csak a jobb megoldások felé mozdul el a program. 
+Emiatt a kezdeti magas hőmérsékleten az algoritmus be tudja járni a paraméterteret, mert szinte biztosan rosszabb sikerességű helyre is mehet. Azonban a hőmérséklet lassú csökkentésével egyre kisebb az esély, hogy alacsonyabb függvényértékű helyre kerül a program. Zéró hőmérséklethez tartva pedig már csak a jobb megoldások felé mozdul el a program. A módszer működését \aref{fig:simulated_annealing_szemleltetes}. ábra szemlélteti.
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{img/sa.png}
+	\caption{Szimulált hűtés szemléltetése egy dimenzióban \cite{simulated_annealing_fig}}
+	\label{fig:simulated_annealing_szemleltetes}
+\end{figure}
 
-% TODO: hőmérsékletválasztás + indoklás, itt nem jó a sok paraméter
+\Aref{veletlen_kozeli_pont}. lépésben említett közeli pont sokféleképpen értelmezhető, problémafüggő a választás. Legegyszerűbb ha a paramétertérben egy véletlenszerű irányban elmozdulunk egységnyit, a későbbiekben ezt használtuk.
+
+Az, hogy a hőmérséklet időfüggését, hogyan választjuk meg nagyban függ az adott feladattól, a kezdő- és véghőmérséklet pedig a $\Delta E = E(\mathbf{x}) - E(\mathbf{x}_0)$ érték tipikus nagyságrendjétől. %TODO: ez nálunk...
+Esetünkben a kezdőhőmérsékletet $0.01$-nek választottuk, majd minden kiértékelés után csökkentettük úgy, hogy lineárisan elérje a nullát. Ekkor a bemenő paraméter a kiértékelések száma, amelynek sebességével állítani tudjuk a hűtés sebességét, minél nagyobb ez a szám, annál lassabb a folyamat.
+
+A szimulált hűtés várhatóan a sok dimenziós problémákra nem működik olyan jól vagy lassan optimalizál, hiszen a paraméterteret nehezebb, lassabb bejárni, mint egydimenziós esetben. % TODO: görbe illesztésre használják?
 
 \subsection{Genetikus algoritmus}
-\cite{genetic_algorithm} %TODO: több egyén! <-> grad/SA
+A genetikus algoritmus egy evolúció által ihlettett optimalizációs módszer. Úgy próbál elérni egy optimumot, mint ahogy a természetben az élővilág fejlődik. Ehhez szükséges egy populáció, azaz egyének sokasága. Az egyén egy pontnak felel meg a paramétertérben. A következő három tényező alakítja majd a populációt:
+\begin{itemize}
+	\item Keresztezés
+	\item Mutáció
+	\item Szelekció
+\end{itemize}
+\cite{whitley1994genetic} %TODO: több egyén! <-> grad/SA
 \subsection{Futási idők}
 \section{Eredmények}
 \begin{figure}[H]
