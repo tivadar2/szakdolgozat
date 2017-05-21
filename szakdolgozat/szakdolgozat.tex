@@ -120,7 +120,17 @@ Az életkor meghatározásához alapvetően egy szociális hálózatot használu
 \subsection{Optimizálatlan életkor-meghatározás} \label{eletkor_becsles_tamas_gabor}
 Ebben az alrészben a \cite{tamas_gabor_tdk} TDK dolgozatban leírt életkorbecslő eljárást ismertetem, amely alapul szolgál ezen szakdolgozatnak.
 
-Az embereket jól jellemzik a közösségek, amelyeknek tagjai. Ilyenek például az osztályok, a családok, a munkatársi vagy baráti körök. Egy kiválasztott egyén életkora összefüggésbe hozható a közösségei átlagéletkoraival. Ez az összefüggés nem triviális, viszont felhasználható a vizsgált személy korának meghatározásához. Ehhez először fel kell térképezni a közösségeket a hálózatban, ami nem egyértelmű feladat. Létezik \iffalse TODO: létezik helyett valami más szó \fi többfajta közösségfelismerő algoritmus, melyek megpróbálják az ember által elképzelt közösségképet felhasználni a kereséshez, illetve a hálózat esetleges hibáit is figyelembe venni (például hiányzó élek vagy csúcsok). Az általunk továbbiakban használt csoportok az úgynevezett Ahn-módszerrel \cite{tamas_gabor_tdk} \iffalse TODO: kell ez? \fi lettek feltérképezve. % TODO: vagy másik cikk
+%Az embereket jól jellemzik a közösségek, amelyeknek tagjai. Ilyenek például az osztályok, a családok, a munkatársi vagy baráti körök. Egy kiválasztott egyén életkora összefüggésbe hozható a közösségei átlagéletkoraival. Ez az összefüggés nem triviális, viszont felhasználható a vizsgált személy korának meghatározásához. 
+Az emberek közösségekben élik életüket, mely lehet munkahely, baráti kör, család, hobbi, stb. Ezen közösségek jellemzője, hogy a tagjaikat valami összeköti, közös érdeklődés, tevékenység stb. Nagyon sok féle homofília lehet az emberek között, de ezek közül a legtermészetesebb az életkor, hiszen kortársainkkal vagyunk általában azonos élethelyzetben, azonosak a problémáink. Az egyének szociális kapcsolatrendszerét az egocentrikus hálózattal tudjuk jellemezni (pl. \ref{egocentrikus}. ábra), amelyben viszonylag természetesen jelennek meg a közösségek.
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.4]{img/ccmy.png}
+	\caption{Egy egocentrikus hálózat} % TODO: aláírás
+	\label{egocentrikus}
+\end{figure}
+A pusztán hálózati megközelítés azonban nem ad számot arról, hogy egy adott közösség milyen konkrét társadalmi igény köré szerveződik. Azonban várható, hogy felülreprezentáltak lesznek az egyénnel azonos korösszetételű közösségek.
+Feladatunk tehát, hogy először feltérképezzük a közösségeket a hálózatban, ami nem egyértelmű feladat. Létezik \iffalse TODO: létezik helyett valami más szó \fi többfajta közösségfelismerő algoritmus, melyek megpróbálják az ember által elképzelt közösségképet felhasználni a kereséshez, illetve a hálózat esetleges hibáit is figyelembe venni (például hiányzó élek vagy csúcsok). Az általunk továbbiakban használt csoportok az úgynevezett Ahn-módszerrel \cite{tamas_gabor_tdk} \iffalse TODO: kell ez? \fi lettek feltérképezve. % TODO: vagy másik cikk
+
 Ezután készítettünk egy Gauss-függvénnyel \eqref{simito_gauss} simított hisztogramot, amit az életkoráloszlás ugyanolyan Gauss-függvénnyel simított függvényével normáltunk \eqref{diszkret_konv}:
 %Ezután készítünk egy hisztogramot, még pedig úgy, hogy a csoportok átlagéletkoraira centrált Gauss-görbéket összegezzük az összes csoportra, tehát egy diszkrét konvolúciót végzünk el \eqref{diszkret_konv}.
 \begin{equation} \label{simito_gauss}
@@ -274,7 +284,7 @@ ahol $\Delta x = 0,5$-nek választottuk. Ennek az az oka, hogy a sikeresség fü
 	\caption{Sikeresség a $p_1$ függvényében, a többi paraméter rögzített}
 	\label{E_param1}
 \end{figure}
-A $\Delta x$ ilyen nagy értékűnek választása nem lehet nagy pontossággal meghatározni a lokális maximum helyét.
+A $\Delta x$ ilyen nagy értékűnek választása nem lehet nagy pontossággal meghatározni a lokális maximum helyét, viszont a függvény trendjét vesszük vele figyelembe, nem pedig a kis változásokat. Az hogy egy paraméter mekkora mértékű megváltoztatásával érünk egy kimutathatóan jobb sikerességet függ attól, hogy melyik paramétert változtatjuk, ezért a $\Delta x$-et minden paraméterre lehetne külön definiálni, ettől viszont eltekintünk az egyszerűség kedvéért.
 % TODO: determinisztikus, megállási feltétel
 \subsection{Szimulált hűtés}
 A szimulált hűtés (angolul: simulated annealing) \cite{simulated_annealing} egy sztochasztikus optimalizációs módszer, mely a nevét a fémmegmunkálásban alkalmazott technikáról kapta, amely során a fémet felmelegítik, majd lassan lehűtik, ezzel megnövelve benne a kristályok méretét és csökkentve a hibákat.
@@ -296,7 +306,7 @@ Emiatt a kezdeti magas hőmérsékleten az algoritmus be tudja járni a paramét
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.8]{img/sa.png}
-	\caption{Szimulált hűtés szemléltetése egy dimenzióban \cite{simulated_annealing_fig}}
+	\caption{Szimulált hűtés szemléltetése egy dimenzióban (forrás: \cite{simulated_annealing_fig})}
 	\label{fig:simulated_annealing_szemleltetes}
 \end{figure}
 
@@ -308,13 +318,29 @@ Esetünkben a kezdőhőmérsékletet $0.01$-nek választottuk, majd minden kiér
 A szimulált hűtés várhatóan a sok dimenziós problémákra nem működik olyan jól vagy lassan optimalizál, hiszen a paraméterteret nehezebb, lassabb bejárni, mint egydimenziós esetben. % TODO: görbe illesztésre használják?
 
 \subsection{Genetikus algoritmus}
-A genetikus algoritmus egy evolúció által ihlettett optimalizációs módszer. Úgy próbál elérni egy optimumot, mint ahogy a természetben az élővilág fejlődik. Ehhez szükséges egy populáció, azaz egyének sokasága. Az egyén egy pontnak felel meg a paramétertérben. A következő három tényező alakítja majd a populációt:
+A genetikus algoritmus \cite{whitley1994genetic} egy evolúció által ihlettett optimalizációs módszer. Ez alatt azt kell érteni, hogy úgy próbál elérni egy optimumot, mint ahogy a természetben az élővilág fejlődik. Ehhez szükséges egy populáció, azaz egyének sokasága. Az egyén egy vektornak felel meg a paramétertérben. A következő három operátor tudja alakítani, változtatni a populációt:
 \begin{itemize}
 	\item Keresztezés
 	\item Mutáció
 	\item Szelekció
 \end{itemize}
-\cite{whitley1994genetic} %TODO: több egyén! <-> grad/SA
+A kezdő populációt véletlenszerűen generált egyénekből hozzuk létre. Jelen esetben a véletlenszerűség azt jelenti, hogy minden paramétert egyenletes eloszlással,  0 és 5 közötti értékkel töltünk fel. Ezután elvégezzük a keresztezést, azaz egy-egy egyén tulajdonságait valamilyen szabály alapján összefésüljük, melyből egy új keletkezik. A két egyént szülőnek a létrejött egyént utódnak nevezzük. Az, hogy a szülők tulajdonságai alapján hogyan hozzuk létre az utód tulajdonságait sokféleképpen lehetséges, viszont implementálás során a legegyszerűbbet választottuk, mégpedig hogy az utód az egyes tulajdonságokat (paramétereket) 50-50 \% eséllyel az egyik vagy másik szülőtől kapja. Páros populáció-méret esetén a keresztezést úgy végezzük el, hogy minden egyénnek legyen párja, viszont a választás teljesen véletlenszerű legyen. Ezáltal a populáció mérete másfél-szeresére nő.
+
+Miután elvégeztük a keresztezést szelekciót hajtunk végre, amely hasonló az evolúció esetén történő természetes kiválasztódáshoz. Először az összes egyedre kiszámítjuk az $E(\mathbf{p})$ sikerességi hányadost, ezeket sorba rendezzük a függvény értéke szerint, majd a legjobbakat kiválasztjuk, a többit pedig eldobjuk. Érdemes annyi egyedet kiválasztani, mint amennyi a populáció kezdő mérete volt, így az algoritmus futási ideje kiszámítható marad. A kiválasztott egyedek alkotják a következő generációt. A megállási feltétel lehet olyan, hogy az utolsó néhány generáció legjobb egyedeit figyelve már nem tapasztalunk javulást, vagy lehet egyszerűen egy fix generációszámmal meghatározni. Az egyszerűség kedvéért az utóbbit alkalmazzuk.
+
+Ha csak a keresztezést és szelekciót alkalmazzuk egy olyan probléma állhat fent, hogy a paraméterteret nem járjuk be csak egy kis tartományon. Ez az optimalizáció hatékonyságát csökkenti. Úgy tehetünk ellene, ha minden generáció esetében az egyedek egy részét kicsivel megváltoztatjuk, ezt a műveletet mutációnak nevezzük. Gyakorlatban az összes egyed, összes tulajdonságát egy bizonyos valószínűséggel megváltoztatjuk. A változás alatt azt értjük, hogy az eredeti értékhez hozzáadunk egy $0,5$ szórású, $0$ várható értékű normális eloszlású változót. % TODO: változó? 
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.4]{img/crossover_mutation.png}
+	\caption{Keresztezés és mutáció szemléltetése (forrás: \cite{genetic_cross-mutation})}
+	\label{}
+\end{figure}
+
+A populáció mérete állítható, általában minél nagyobbat választunk, annál jobb lesz az optimalizáció (bizonyos értékig), viszont figyelembe kell venni a futási időt is, amely arányos a populáció méretével.
+
+A genetikus algoritmust az előző két optimalizációs módszerrel összehasonlítva sokdimenziós paramétertéren is jól működik és nem lokális szélsőértéket talál, hanem egy viszonylag jó optimumot. Nagy előnyt jelent, hogy több megoldást tárol el egyszerre, mert lehet, hogy két teljesen különböző egyed is hasonlóan jó sikerességi hányadosú, mutációval pedig az egyik tökéletesíthető a későbbi generációkban.
+%TODO: több egyén! <-> grad/SA
 \subsection{Futási idők}
 \section{Eredmények}
 \begin{figure}[H]
