@@ -164,7 +164,7 @@ Többféleképpen is lehet definiálni paramétereket. Feloszthatjuk az $(n_i, \
 \begin{table}[H]
 	\centering
 	\setstretch{1.5}
-	\begin{tabular}{|c|c|c|c|c|} % TODO: esetleg más tartományjelölés pl {1}, {2, 3, 4, 5}
+	\begin{tabular}{|c|c|c|c|c|}
 		\hline
 		\diagbox{$\sigma_{cs}$}{$n_{cs}$} & $]0;1]$ & $]1;5]$ & $]5;10]$ & $]10;\infty[$  \\
 		\hline
@@ -199,7 +199,13 @@ A paraméterek fentebb leírt módon való kiválasztása, azért is jó, mert a
 	\caption{Csoportok méret- és szóráseloszlásai}
 	\label{meret_szoras_eloszlas}
 \end{figure}
-Abban, hogy a paraméterek határait hol húzzuk meg \aref{meret_szoras_eloszlas}. ábra segített. Megpróbáltunk jellegzetes tartományokat kiválasztani, ebből lett \aref{felosztas}. táblázat szerinti felosztás. Emellett nem szerettünk volna sok paramétert se, mert az optimalizálásnál az nem előnyös. 
+Abban, hogy a paraméterek határait hol húzzuk meg \aref{meret_szoras_eloszlas}. ábra segített. Megpróbáltunk jellegzetes tartományokat kiválasztani, ebből lett \aref{felosztas}. táblázat szerinti felosztás. Emellett nem szerettünk volna sok paramétert se, mert az optimalizálásnál az nem előnyös.
+
+Egy másik lehetőség a súlyfaktor választására, ha $s(n_i, \sigma_i)$ valamilyen matematikai függvény. Például kipróbáltuk a \eqref{masik_suly} szerinti összefüggést is.
+\begin{equation} \label{masik_suly}
+	s(n_i, \sigma_i) = \frac{1}{p + \sigma_i}
+\end{equation}
+Ez a súly független a csoport méretétől és csak egy paramétert tartalmaz, a $p$-t. Illetve egyszerűen veszi figyelembe a csoport szórását, ha az kicsi, akkor nagyobb a súly, ellenkező esetben kisebb. A paraméter állításával pedig a súly csoportszórásra való érzékenységét lehet könnyen változtatni. Viszont a tartományok felosztását használtuk a már fentebb említett előnyei miatt.
 % TODO: negatív paraméterek?
 
 \subsection{Sikerességi ráták}
