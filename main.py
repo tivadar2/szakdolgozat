@@ -172,7 +172,6 @@ class MyApplication(object):
             matrix[num] = suly*np.exp(-np.square(x - g.averageAge) / (2 * self.params[8]*self.params[8]))
 
         K = matrix.sum(axis=0)/self.smoothedAgeDistribution
-
         # plt.plot(x, K)
         # plt.show()
         return K
@@ -298,12 +297,11 @@ class MyApplication(object):
 
     def simulated_annealing(self, cycles, start, no):
         if start == 'fix':
-            self.params = np.array([1, 1, 1, 1, 1, 1,
-                                    1, 1, 3, 1, 1])
+            self.params = np.array([1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1], dtype=np.float32)
         elif start == 'random':
             self.params = np.array(
                 [uniform(0, 5), uniform(0, 5), uniform(0, 5), uniform(0, 5), uniform(0, 5), uniform(0, 5),
-                 uniform(0, 5), uniform(0, 5), uniform(0, 5), uniform(0, 5), uniform(0, 5)])
+                 uniform(0, 5), uniform(0, 5), uniform(0, 5), uniform(0, 5), uniform(0, 5), uniform(0, 5)])
 
         E = self.estimate_all_ages()
 
@@ -316,13 +314,13 @@ class MyApplication(object):
             while T > 0:
                 d_params = np.array(
                     [uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1),
-                     uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1)])
+                     uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1), uniform(-1, 1)])
                 d_params = d_params / np.linalg.norm(self.params)
                 self.params = self.params + d_params
                 E = self.estimate_all_ages()
                 print(self.params)
                 print("E = " + str(E))
-                print(str(T) + " " + str(E) + " " + get_nice_string(self.params), file=file)
+                # print(str(T) + " " + str(E) + " " + get_nice_string(self.params), file=file)
                 if E > prev_E:
                     prev_params = self.params
                     prev_E = E
@@ -337,6 +335,7 @@ class MyApplication(object):
                         self.params = self.params - d_params
                         print("újra " + str(p))
                         # pass # nem csinál semmit, újra random
+                print(str(T) + " " + str(prev_E) + " " + str(E) + " " + get_nice_string(self.params), file=file)
                 print("T = " + str(T) + "\n")
                 T -= 0.01/cycles
 
@@ -452,8 +451,9 @@ if __name__ == '__main__':
 
     app = MyApplication()
     app.smoothedAgeDistribution = load_obj("smoothAgeDistribution_iwiw_sigma2")
+    #app.smoothedAgeDistribution = load_obj("smoothAgeDistribution_tel_sigma2")
     app.class_egos = load_obj('iwiw_50_class_egos')
-    # app.class_egos = load_obj('class_egos')
+    #app.class_egos = load_obj('class_egos')
     """
     group_sizes = [0]*301
     for class_ego in app.class_egos:
