@@ -25,7 +25,6 @@
 
 % TODO: komplexitásszerű dolgok leírása, hányszor kell fitness-t számolni, a különböző módszereknél
 % TODO: margók
-% TODO: negatív csúcsok -> jobb v-jű lesz a többi csúcs?
 
 \begin{titlepage}
 	\centering
@@ -85,7 +84,7 @@ pm2 függvény - plusz mínusz 2 éven belüli becslések aránya, 0 és 1 közt
 \medskip
 Alulírott Pongó Tivadar a Budapesti Műszaki és Gazdaságtudományi Egyetem fizika BSc szakos hallgatója kijelentem, hogy ezt a szakdolgozatot meg nem engedett segédeszközök nélkül, önállóan, a témavezető irányításával készítettem, és csak a megadott forrásokat használtam fel. \\
 Minden olyan részt, melyet szó szerint, vagy azonos értelemben, de átfogalmazva más forrásból vettem, a forrás megadásával jelöltem.\\\\
-Budapest, 2017. 05. 25. \\ \\ \\ %TODO: Dátum pontosan
+Budapest, 2017. 05. 26. \\ \\ \\ %TODO: Dátum pontosan
 \hspace*{100mm}aláírás % TODO: ide nevet szoktak?
 \pagenumbering{gobble}
 \pagebreak
@@ -93,7 +92,7 @@ Budapest, 2017. 05. 25. \\ \\ \\ %TODO: Dátum pontosan
 \pagebreak
 \section{Bevezetés}
 \pagenumbering{arabic}
-Napjainkban a felgyorsult információáramlás miatt rengeteg adat keletkezik rólunk, illetve környezetünkről az interneten. % TODO: vagy máshol is
+Napjainkban a felgyorsult információáramlás miatt rengeteg adat keletkezik rólunk, illetve környezetünkről az interneten.
 Hétköznapi tevékenységeink során digitális nyomot hagyunk magunk után a néhány éve, évtizede létrejött információ- és kommunikációtechnológia alapú környezetekben.
 A különböző csatornákon folytatott kommunikációnk, pénzügyi tevékenységeink, a mobiltelefon szolgáltatónk által ismert fizikai elhelyezkedésünk stb., mind felvételre kerül.
 Ezen a sok passzívan gyűjtött adaton kívül gyakran aktívan is osztunk meg információkat érzéseinkről, hangulatunkról, véleményünkről és nézeteinkről.
@@ -106,8 +105,6 @@ Ginsberg és munkatársai megbecsülték az influenza terjedését az Egyesült 
 
 A szakdolgozatomban egy életkorbecslő módszert mutatok be, mely ugyanúgy sok adat feldolgozásán alapszik. A becslés az ember kapcsolati hálózata és az ismerősök életkorai alapján történik, és közel sem triviális. A fizikusok foglalkoznak komplex rendszerek vizsgálatával, ezáltal a szociális hálózatok tanulmányozása is érdekes feladatnak bizonyul számunkra. A célom a becslő módszer javítása gépi optimalizációs módszerekkel, ez manapság a mesterséges intelligencia terjedésével egy felkapott kutatási terület. % TODO: hivatkozás a 10%-ra?
 % Az adatok egy része egy telefonszolgáltatótól, a másik része az egykori magyar közösségi oldal, iWiW természetesen névtelenül.
-% TODO: big data
-% TODO: milyen nagyszerű dolgokat csináltak ezzel
 % TODO: én mit akarok ezzel csinálni (optimalizáció)
 % TODO: komplex rendszer, tehát fizikával összehasonlítható
 % TODO: erre akarok egy programot írni
@@ -116,7 +113,7 @@ A szakdolgozatomban egy életkorbecslő módszert mutatok be, mely ugyanúgy sok
 Az életkor meghatározásához alapvetően az adott illető egocentrikus hálózatát használjuk fel, ez a szociális hálózatnak azon része, amelyben már csak az ő ismerősei vannak jelen. Az egocentrikus hálózat egy gráf, melynek csúcsai az ismerősök, illetve a vizsgált személy, az élek pedig az ismeretségeket jelölik. A rendelkezésünkre álló adatbázisban a kapcsolatrendszereken kívül az emberek életkorai is adottak, bár lehetnek rosszak vagy hiányosak az adatok. Ezen információk alapján becsüljük meg egy ember életkorát a következő részben leírtak szerint.
 %Az életkor meghatározásához alapvetően egy szociális hálózatot használunk fel. Ezen belül úgynevezett egocentrikus hálózatot, amely már csak egy adott személy kapcsolatrendszerét tartalmazza. Az adatbázisban a kapcsolatok mellett az ismerősök életkorait tartalmazzák. Persze ezek az adatok hiányosak, vagy lehetnek hibásak is. A kapcsolati hálózat egy gráfként kezelhető, amelyben a csúcsok az embereknek, az élek pedig a köztük lévő ismeretségnek felelnek meg.
 
-% TODO: adatbázisok
+% TODO: adatbázisok 
 \subsection{Optimizálatlan életkor-meghatározás} \label{eletkor_becsles_tamas_gabor}
 Ebben az alrészben a \cite{tamas_gabor_tdk} TDK dolgozatban leírt életkorbecslő eljárást ismertetem, amely alapul szolgál ezen szakdolgozatnak.
 
@@ -143,11 +140,11 @@ Ezután készítettünk egy Gauss-függvénnyel \eqref{simito_gauss} simított h
 
 A legegyszerűbb eset, amikor $s\equiv 1$, ekkor nem vesszük figyelembe a csoportok tulajdonságait.
 A szumma előtti $n_{sm}$ egy normált, simított életkoreloszlás függvény, amellyel azért osztunk le, hogy kompenzáljuk a középkorúak felülreprezentáltságát a hálózatban.
-A simításhoz használt Gauss-függvény szórását \acite{tamas_gabor_tdk} TDK munkában $\sigma=2$-nek választották. \iffalse TODO: ez lehet nem túl világos \fi \Aref{hisztogram_pelda}. ábrán láthatunk egy példát a $K(a)$ függvényre. A függvényt csak egész évű pontokban értékeltük ki.
+A simításhoz használt Gauss-függvény szórását \acite{tamas_gabor_tdk} TDK munkában $\sigma=2$-nek választották. \Aref{hisztogram_pelda}. ábrán láthatunk egy példát a $K(a)$ függvényre. A függvényt csak egész évű pontokban értékeltük ki.
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.8]{img/82152624_age47.eps}
-	\caption{Példa hisztogram} % TODO: bővebb aláírás
+	\caption{Példa hisztogram} % TODO: bővebb aláírás kell?
 	\label{hisztogram_pelda}
 \end{figure}
 A hisztogramokon csúcsok találhatóak, amelyek azt jelentik, hogy több csoportban ugyanaz az átlagéletkor. Minél nagyobb a csúcs, annál több ilyen csoport van. Ez alapján a vizsgált személy életkorát a legmagasabb csúcs helyével becsülhetnénk. Azonban nem mindegyik hisztogram olyan egyszerű, mint \aref{hisztogram_pelda}. ábrán látható, sokszor több csúcs hasonló nagyságú, ekkor érdemes figyelembe venni a csúcsok félértékszélességét. Definiálhatunk egy csúcs jósági tényezőt \aref{csucs_josag}. képlet szerint:
@@ -160,7 +157,7 @@ Gyakran előfordul olyan, hogy két nagyobb csúcs is jelen van körülbelül 20
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.8]{img/generaciok.eps}
-	\caption{Generációk megfigyelése hisztogramon}
+	\caption{Generációk megfigyelése hisztogramon, a két fő csúcs távolsága 24 év}
 	\label{generaciok}
 \end{figure}
 
@@ -175,7 +172,7 @@ Azt is meg kell említenünk, hogy a hisztogram simítása miatt a csúcs helye 
 Az életkor meghatározása során használunk különböző paramétereket, ilyenek például a Gauss-függvényben \eqref{simito_gauss} a $\sigma$\iffalse TODO: na jó nem biztos, hogy így szép \fi, illetve \aref{diszkret_konv}. képletben lévő $s(n_i, \sigma_i)$-ből származtatott paraméterek. \Acite{tamas_gabor_tdk} munkában $\sigma=2$, $s=1$ választást használjuk kiindulópontnak, és
 ezt optimalizálatlan esetnek nevezzük.
 
-Többféleképpen is lehet definiálni paramétereket. Feloszthatjuk az $(n_i, \sigma_i)$ teret \iffalse TODO: vagy mit \fi tartományokra és az egyes tartományokon alkalmazott súlyok lesznek a paraméterek. A felosztást \aref{felosztas}. táblázat szerint végeztem, ebben külön vettem a $\sigma_{cs} = 0$ esetet. %TODO: befejezni%
+Többféleképpen is lehet definiálni paramétereket. Feloszthatjuk az $(n_i, \sigma_i)$ teret tartományokra és az egyes tartományokon alkalmazott súlyok lesznek a paraméterek. A felosztást \aref{felosztas}. táblázat szerint végeztem, ebben külön vettem a $\sigma_{cs} = 0$ esetet.
 \begin{table}[H]
 	\centering
 	\setstretch{1.5}
@@ -199,7 +196,6 @@ Többféleképpen is lehet definiálni paramétereket. Feloszthatjuk az $(n_i, \
 A 12. paraméter pedig $p_{12} \equiv \sigma$, azaz a hisztogramsimítás erőssége. A $\sigma_{cs} = 0$ eset külön vételére azért van szükség, mert nagyon sok csoportban csak egy embernek ismert az életkora, emiatt annak a szórása $0$. Az $n_{cs}$ ebben az esetben nem a tényleges csoport méret, hanem azoknak az embereknek a száma, akiknek ismert az életkora a csoportban, a vizsgált személyt nem számolva.
 A fenti a paraméterek egy $\mathbf{p} = (p_1, p_2, ..., p_{12})$ vektorba rendezhetőek.
 
-% TODO: miért így osztottam fel
 A paraméterek fentebb leírt módon való kiválasztása, azért is jó, mert a csoportméretet és a csoportszórást nem csak egymástól függetlenül tudjuk súlyozni, azaz $s(n_i, \sigma_i) \neq s'(n_i)\cdot s''(\sigma_i)$. Ezáltal például megkülönböztethetünk egy osztályt egy munkatársakból álló csoporttól. A csoportméret a kettőnél ugyanúgy nagy lehet, viszont az előbbinek a csoportszórása kisebb, ezért azt gondoljuk, hogy azt nagyobb súllyal kell figyelembe venni.
 \begin{figure}[H]
 	\centering
@@ -270,7 +266,9 @@ Ha a becslés pontosságát, sikerességét számokban akarjuk kifejezni, akkor 
 A sikerességet a továbbiakban a $\pm 2$ éven belüli becslések hányadosának vesszük. A későbbiekben erre a hibahatárra fogunk optimalizálni, ezért el is nevezzük $E(\mathbf{p})$-nek a $\pm 2$ éven belüli sikerességet, amely egy $0$ és $1$ közötti szám.
 % TODO: miért jobbak az iwiw-esek?
 \subsection{Kiértékelési idő}
-Az $E(\mathbf{p})$ függvény kiértékelési ideje nagyon fontos az optimizálás gyorsasága szempontjából, hiszen az $E(\mathbf{p})$ kiszámolása alapvető eleme az összes módszernek. Az életkorbecslő eljárás legtöbb processzoridőt használó része a diszkrét konvolúció \eqref{diszkret_konv}. Ezt a részt... % TODO: vektorizálás mennyit írjak le?
+Az $E(\mathbf{p})$ függvény kiértékelési ideje nagyon fontos az optimizálás gyorsasága szempontjából, hiszen $E(\mathbf{p})$ kiszámolása alapvető eleme az összes módszernek. Az életkorbecslő eljárás legtöbb processzoridőt használó része a diszkrét konvolúció \eqref{diszkret_konv}. Ezt ahelyett, hogy ciklussal számoltuk volna, vektorizáltuk. Ennek következtében a számítógép sokkal gyorsabban ki tudja értékelni a $K(a)$ függvényt. Ezen alapszik a fizikusok köreiben is gyakran használt MATLAB programnyelv gyorsasága is. % TODO: jó ez így? ennyit írni az optimalizációról? esetleg: Ezen -> vektorizáláson
+
+A hisztogram kiszámolásának ideje leginkább a csoportok számától függ, ezért az összes csoport száma arányos lesz a kiértékelési idővel.
 \Aref{csoport_kiertekeles}. táblázatban foglaljuk össze az egyes adatbázisokhoz tartozó kiértékelési időket.
 \begin{table}[H]
 	\centering
@@ -283,7 +281,7 @@ Az $E(\mathbf{p})$ függvény kiértékelési ideje nagyon fontos az optimizál�
 			\hline
 			Egok száma & 11026 & 5006 & 6668 \\
 			\hline
-			Egy ego átlagos csoportszáma & & & \\
+			Egy ego átlagos csoportszáma & 27,0 & 26,4 & 83,8 \\
 			\hline
 			Összes csoport száma & 297601 & 132165 & 558790 \\
 			\hline
@@ -293,7 +291,9 @@ Az $E(\mathbf{p})$ függvény kiértékelési ideje nagyon fontos az optimizál�
 		\caption{}
 		\label{}
 	\end{subtable}
-	
+	\newline
+	\vspace*{0.5cm} % TODO: kell ez?
+	\newline
 	\begin{subtable}{1.0\textwidth}
 		\centering
 		\begin{tabular}{|c|c|c|}
@@ -302,7 +302,7 @@ Az $E(\mathbf{p})$ függvény kiértékelési ideje nagyon fontos az optimizál�
 			\hline
 			Egok száma & 5652 & 4227 \\
 			\hline
-			Egy ego átlagos csoportszáma & & \\
+			Egy ego átlagos csoportszáma & 258,6 & 486,1 \\
 			\hline
 			Összes csoport száma & 1461378 & 2054883 \\
 			\hline
@@ -312,12 +312,12 @@ Az $E(\mathbf{p})$ függvény kiértékelési ideje nagyon fontos az optimizál�
 		\caption{}
 		\label{}
 	\end{subtable}
-	\caption{}
+	\caption{A különböző adatbázisokhoz tartozó adatok és a sikerességi függvény kiértékelési ideje, zárójelben pedig az ismerősszámok}
 	\label{csoport_kiertekeles}
 \end{table}
 
 \section{Optimalizációs módszerek}
-Egyszerű esetben az optimalizáció egy függvény minimum- vagy maximumhelyének megkeresését jelenti egy bizonyos tartományon \cite{Holder}. \iffalse TODO: példa a prog opt.-ról? \fi Ez azért lehet nehéz feladat, mert a függvényt kiértékelni egy pontban sokáig tarthat. Nagyon sok idő lenne az értelmezési tartomány egészére kiértékelni a függvényt.
+Egyszerű esetben az optimalizáció egy függvény minimum- vagy maximumhelyének megkeresését jelenti egy bizonyos tartományon \cite{Holder}. Ez azért lehet nehéz feladat, mert a függvényt kiértékelni egy pontban sokáig tarthat. Nagyon sok idő lenne az értelmezési tartomány egészére kiértékelni a függvényt.
 
 Ebben a fejezetben különböző optimalizációs módszerek alapját próbáltam ki azzal a céllal, hogy az $E(\mathbf{p})$ függvényt maximalizáljam, tehát az életkorbecslés ($\pm 2$ éven belüli) sikerességi hányadosát növeljem.
 \subsection{Gradiens módszer}
@@ -353,7 +353,6 @@ A $\Delta x$ ilyen nagy értékűnek választása esetén nem lehet nagy pontoss
 
 Mivel az optimalizálandó függvényünk nem sima, ezért a megállási feltétel sem egyértelmű, lehet, hogy egy lépés után csak egy kis lokális minimumba kerültünk, de az is lehet, hogy már a nagyobb lokális maximumról haladunk lefelé.
 Az algoritmus determinisztikus, azaz ha egy adott helyről többször elindítjuk azonos beállítások mellett, akkor mindig ugyanazt az utat teszi meg, illetve a végső paraméterek is ugyanazok lesznek.
-% TODO: megállási feltétel
 \subsection{Szimulált hűtés}
 A szimulált hűtés (angolul: simulated annealing) \cite{simulated_annealing} egy sztochasztikus optimalizációs módszer, mely a nevét a fémmegmunkálásban alkalmazott technikáról kapta, amely során a fémet felmelegítik, majd lassan lehűtik, ezzel megnövelve benne a kristályok méretét és csökkentve a hibákat.
 
@@ -380,8 +379,8 @@ Emiatt a kezdeti magas hőmérsékleten az algoritmus be tudja járni a paramét
 
 \Aref{veletlen_kozeli_pont}. lépésben említett közeli pont sokféleképpen értelmezhető, problémafüggő a választás. Legegyszerűbb ha a paramétertérben egy véletlenszerű irányban elmozdulunk egységnyit, a későbbiekben ezt használtuk.
 
-Az, hogy a hőmérséklet időfüggését, hogyan választjuk meg nagyban függ az adott feladattól, a kezdő- és véghőmérséklet pedig a $\Delta E = E(\mathbf{x}) - E(\mathbf{x}_0)$ érték tipikus nagyságrendjétől. %TODO: ez nálunk...
-Esetünkben a kezdőhőmérsékletet $0.01$-nek választottuk, majd minden kiértékelés után csökkentettük úgy, hogy lineárisan elérje a nullát. Ekkor a bemenő paraméter a kiértékelések száma, amelynek sebességével állítani tudjuk a hűtés sebességét, minél nagyobb ez a szám, annál lassabb a folyamat.
+Az, hogy a hőmérséklet időfüggését, hogyan választjuk meg nagyban függ az adott feladattól, a kezdő- és véghőmérséklet pedig a $\Delta E = E(\mathbf{x}) - E(\mathbf{x}_0)$ érték tipikus nagyságrendjétől (egy százalék változás $\Delta E = 0,01$-et jelent). %TODO: ez nálunk...
+Esetünkben a kezdőhőmérsékletet $0,01$-nek választottuk, majd minden kiértékelés után csökkentettük úgy, hogy lineárisan elérje a nullát. Ekkor a bemenő paraméter a kiértékelések száma, amelynek sebességével állítani tudjuk a hűtés sebességét, minél nagyobb ez a szám, annál lassabb a folyamat.
 
 A szimulált hűtés várhatóan a sok dimenziós problémákra nem működik olyan jól vagy lassan optimalizál, hiszen a paraméterteret nehezebb, lassabb bejárni, mint egydimenziós esetben. % TODO: görbe illesztésre használják?
 
@@ -392,7 +391,7 @@ A genetikus algoritmus \cite{whitley1994genetic} egy evolúció által ihlettett
 	\item Mutáció
 	\item Szelekció
 \end{itemize}
-A kezdő populációt véletlenszerűen generált egyénekből hozzuk létre. Jelen esetben a véletlenszerűség azt jelenti, hogy minden paramétert egyenletes eloszlással,  0 és 5 közötti értékkel töltünk fel. Ezután elvégezzük a keresztezést, azaz egy-egy egyén tulajdonságait valamilyen szabály alapján összefésüljük, melyből egy új keletkezik. A két egyént szülőnek a létrejött egyént utódnak nevezzük. Az, hogy a szülők tulajdonságai alapján hogyan hozzuk létre az utód tulajdonságait sokféleképpen lehetséges, viszont implementálás során a legegyszerűbbet választottuk, mégpedig hogy az utód az egyes tulajdonságokat (paramétereket) 50-50 \% eséllyel az egyik vagy másik szülőtől kapja. Páros populáció-méret esetén a keresztezést úgy végezzük el, hogy minden egyénnek legyen párja, viszont a választás teljesen véletlenszerű legyen. Ezáltal a populáció mérete másfél-szeresére nő.
+A kezdő populációt véletlenszerűen generált egyénekből hozzuk létre. Jelen esetben a véletlenszerűség azt jelenti, hogy minden paramétert egyenletes eloszlással,  0 és 5 közötti értékkel töltünk fel. Ezután elvégezzük a keresztezést, azaz egy-egy egyén tulajdonságait valamilyen szabály alapján összefésüljük, melyből egy új keletkezik. A két egyént szülőnek a létrejött egyént utódnak nevezzük. Az, hogy a szülők tulajdonságai alapján hogyan hozzuk létre az utód tulajdonságait sokféleképpen lehetséges, viszont implementálás során a legegyszerűbbet választottuk, mégpedig hogy az utód az egyes tulajdonságokat (paramétereket) 50-50 \% eséllyel az egyik vagy másik szülőtől kapja. Páros populációméret esetén a keresztezést úgy végezzük el, hogy minden egyénnek legyen párja, viszont a választás teljesen véletlenszerű legyen. Ezáltal a populáció mérete másfél-szeresére nő.
 
 Miután elvégeztük a keresztezést szelekciót hajtunk végre, amely hasonló az evolúció esetén történő természetes kiválasztódáshoz. Először az összes egyedre kiszámítjuk az $E(\mathbf{p})$ sikerességi hányadost, ezeket sorba rendezzük a függvény értéke szerint, majd a legjobbakat kiválasztjuk, a többit pedig eldobjuk. Érdemes annyi egyedet kiválasztani, mint amennyi a populáció kezdő mérete volt, így az algoritmus futási ideje kiszámítható marad. A kiválasztott egyedek alkotják a következő generációt. A megállási feltétel lehet olyan, hogy az utolsó néhány generáció legjobb egyedeit figyelve már nem tapasztalunk javulást, vagy lehet egyszerűen egy fix generációszámmal meghatározni. Az egyszerűség kedvéért az utóbbit alkalmazzuk.
 
@@ -408,14 +407,21 @@ Ha csak a keresztezést és szelekciót alkalmazzuk egy olyan probléma állhat 
 A populáció mérete állítható, általában minél nagyobbat választunk, annál jobb lesz az optimalizáció (bizonyos értékig), viszont figyelembe kell venni a futási időt is, amely arányos a populáció méretével.
 
 A genetikus algoritmust az előző két optimalizációs módszerrel összehasonlítva sokdimenziós paramétertéren is jól működik és nem lokális szélsőértéket talál, hanem egy viszonylag jó optimumot. Nagy előnyt jelent, hogy több megoldást tárol el egyszerre, mert lehet, hogy két teljesen különböző egyed is hasonlóan jó sikerességi hányadosú, mutációval pedig az egyik tökéletesíthető a későbbi generációkban.
-\subsection{Futási idők}
-
+\subsection{Kiértékelések száma}
+%TODO: talán a kiértékelési idővel összevonva?
 
 \section{Eredmények}
 A különböző optimalizációs módszerek eredményeit más-más szempontból lehet vizsgálni. Alapvetően a paramétereket és a hozzájuk tartozó sikerességeket érdemes valahogyan szemléltetni. A módszereket többnyire az 50 ismerősű iWiW-es adatokon próbáltuk ki, mert a kiértékelési idő annál a legkisebb.
 
 \subsection{Gradiens módszer}
-
+A sikerességet ennél a módszernél a lépésszámok függvényében adatjuk meg. \Aref{grad_fix}. ábrán látható egy ilyenfajta ábrázolás.
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{img/grad_fix.eps}
+	\caption{Sikeresség az iterációszám függvényében, kezdőpont az optimalizálatlan eset (iWiW 50 ismerős)}
+	\label{grad_fix}
+\end{figure}
+Meg kell jegyezni, hogy a módszer végeredménye nagyban függ a kezdőponttól, hiszen determinisztikus. Megállási feltételt sem egyszerű definiálni, mivel sok lokális minimum van az $E(\mathbf{p})$ függvényben. \Aref{grad_fix}. ábrán is látszik, hogy a kb. 20 és 50 közötti részen sokszor visszaesik a sikeresség értéke, viszont az intervallumon összességében nő $E(\mathbf{p})$ értéke. Ez alapján a megállási feltételt a következőképpen lehetne meghatározni: akkor álljon le az iteráció, amikor az utolsó tíz lépésben nem volt nagyobb érték, mint azelőtt. %TODO: érthető? tíz helyett valami betű konstans?
 \subsection{Szimulált hűtés}
 A szimulált hűtés esetében a sikerességeket a hőmérséklet függvényében figyelhetjük meg. % TODO: figyelhetjük meg helyett valami más szó
 Mivel ez egy sztochasztikus módszer, ezért többszöri futás eredményeit is összevetjük. % TODO: új bekezdés?
@@ -423,12 +429,12 @@ Mivel ez egy sztochasztikus módszer, ezért többszöri futás eredményeit is 
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.8]{img/sa_fix_1000_legek.eps}
-	\caption{Sikeresség a hőmérséklet függvényében, 1000 kiértékelés, 5 futás közül a legrosszabb és legjobb végeredményű (iWiW 50 ismerős)}
+	\caption{Sikeresség a hőmérséklet függvényében, 1000 kiértékelés, 5 futás közül a legrosszabb (piros) és legjobb (zöld) végeredményű (iWiW 50 ismerős)}
 	\label{sa_legek}
 \end{figure}
 \Aref{sa_legek}. ábrán látható két sikeresség függvény, melyeket a szimulált hűtés ötszöri futtatása után választottunk ki, a legrosszabb és a legjobb végeredményűt. Ebből látszik, hogy mekkora eltérés lehet két futás között, a rosszabb 57,6 \%, a jobb 61,4 \% sikeresség lett. Mindkettőnél megfigyelhető kis hőmérsékleten (kb. $0,6 \cdot 10^{-3}$ alatt) egy szinte vízszintes rész, ez amiatt van, mert ilyen kis hőmérsékleten a módszer szinte már csak a jobb megoldások felé mozdul el.
 \subsection{Genetikus algoritmus}
-A genetikus algoritmus esetében minden generációban sok egyed van, melyek sikerességét együtt nehéz lenne megjeleníteni, ezért csak az adott generáció legjobb egyedének sikerességét választjuk ki, majd ábrázoljuk. % TODO: szemeljük ki, vagy mi?
+A genetikus algoritmus esetében minden generációban sok egyed van, melyek sikerességét együtt nehéz lenne megjeleníteni, ezért csak az adott generáció legjobb egyedének sikerességét választjuk ki, majd ábrázoljuk.
 \begin{figure}[H]
 	\centering
 	
@@ -436,42 +442,63 @@ A genetikus algoritmus esetében minden generációban sok egyed van, melyek sik
 	\label{}
 \end{figure}
 
-\subsection{Optimális paraméterek}
-
+\subsection{Összehasonlítás}
+Az optimalizációs módszerek végeredményeit összehasonlíthatjuk, illetve összevethetjük az optimalizálatlan eset sikerességeivel is.
 \begin{table}[H]
 	\centering
 	\setstretch{1.5}
+	\begin{tabular}{|c|c|c|c|c|c|}
+		\hline
+		 & \multicolumn{4}{|c|}{iWiW} & Telefonos \\
+		\hline
+		 & 50 & 100 & 200 & 300 & 60-69 \\
+		 \hline
+		 Optimizálatlan eset & 50,6 \% & 63,8 \% & 77,5 \% & 81,9 \% & 35,4 \% \\
+		 \hline
+		 Genetikus algoritmus & 61,5 \% & 74,3 \% & 86,7 \% & 89,1 \% & 39,4 \% \\
+		 \hline
+	\end{tabular}
+	\caption{}
+\end{table}
+
+\subsection{Optimális paraméterek}
+A bemutatott optimalizációs módszerek közül a genetikus algoritmus eredményei voltak stabilan a legjobbak, ezért mindegyik adatbázisra lefuttattuk. Paraméterekként a következőket használtuk: 10-es populációméret, 100 generáció, 25 \%-os mutáció.
+\begin{table}[H]
+	\centering
+	\setstretch{1.5} % [width=1.5cm,height=1.2cm]
 	\begin{subtable}{0.49\textwidth}
 		\begin{tabular}{|c|c|c|c|c|}
 			\hline
 			\diagbox[width=1.5cm,height=1.2cm]{$\sigma_{cs}$}{$n_{cs}$} & $]0;1]$ & $]1;5]$ & $]5;10]$ & $]10;\infty[$  \\
 			\hline
-			$0$ & 0,39 & \multicolumn{3}{|c|}{5,48} \\
+			$0$ & 1,14 & \multicolumn{3}{|c|}{3,43} \\
 			\hline
-			$]0;3]$ & \multicolumn{2}{|c|}{3,13} & 7,18 & 5,87 \\
+			$]0;3]$ & \multicolumn{2}{|c|}{2,14} & 5,88 & 4,85 \\
 			\hline
-			$]3;6]$ & \multicolumn{2}{|c|}{1,25} & 1,57 & 6,71 \\
+			$]3;6]$ & \multicolumn{2}{|c|}{0,05} & 3,27 & 4,06 \\
 			\hline
-			$]6;\infty[$  & \multicolumn{2}{|c|}{1,12} & 1,42 & 0,0 \\
+			$]6;\infty[$  & \multicolumn{2}{|c|}{0,0} & 0,0 & 0,0 \\
 			\hline
 		\end{tabular}
+		\caption{legjobb}
 	\end{subtable}
 	\begin{subtable}{0.49\textwidth}
 		\begin{tabular}{|c|c|c|c|c|}
 			\hline
 			\diagbox[width=1.5cm,height=1.2cm]{$\sigma_{cs}$}{$n_{cs}$} & $]0;1]$ & $]1;5]$ & $]5;10]$ & $]10;\infty[$  \\
 			\hline
-			$0$ & 0,39 & \multicolumn{3}{|c|}{5,48} \\
+			$0$ & 0,3 & \multicolumn{3}{|c|}{4,79} \\
 			\hline
-			$]0;3]$ & \multicolumn{2}{|c|}{3,13} & 7,18 & 5,87 \\
+			$]0;3]$ & \multicolumn{2}{|c|}{2,22} & 7,0 & 3,85 \\
 			\hline
-			$]3;6]$ & \multicolumn{2}{|c|}{1,25} & 1,57 & 6,71 \\
+			$]3;6]$ & \multicolumn{2}{|c|}{0,0} & 0,57 & 3,42 \\
 			\hline
-			$]6;\infty[$  & \multicolumn{2}{|c|}{1,12} & 1,42 & 0,0 \\
+			$]6;\infty[$  & \multicolumn{2}{|c|}{1,53} & 0,13 & 0,36 \\
 			\hline
 		\end{tabular}
+		\caption{0.25-ös mutációval a legjobb}
 	\end{subtable}
-	\caption{A különböző tartományokban alkalmazott súlyok}
+	\caption{iWiW 50 ismerős} % A különböző tartományokban alkalmazott súlyok
 \end{table}
 \begin{table}[H]
 	\centering
