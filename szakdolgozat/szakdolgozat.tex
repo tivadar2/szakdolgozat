@@ -16,10 +16,14 @@
 \usepackage{setspace}
 \usepackage{diagbox}
 \usepackage{setspace}
+\usepackage{makecell}
+\usepackage[table]{xcolor}
 \usepackage[square,numbers]{natbib}
 \bibliographystyle{unsrt}
 %\usepackage[backend=biber]{biblatex}
-%\addbibresource{bibliography.bib}
+%%\addbibresource{bibliography.bib}
+\usepackage{titlesec}
+\newcommand{\sectionbreak}{\clearpage}
 
 \begin{document}
 
@@ -72,7 +76,6 @@
 	\item Simulated annealing
 	\item genetikus algoritmus
 \end{itemize}
-pm2 függvény - plusz mínusz 2 éven belüli becslések aránya, 0 és 1 közti szám \\ \\
 \fi
 
 
@@ -126,21 +129,23 @@ Az emberek közösségekben élik életüket, mely lehet munkahely, baráti kör
 	\label{egocentrikus}
 \end{figure}
 A pusztán hálózati megközelítés azonban nem ad számot arról, hogy egy adott közösség milyen konkrét társadalmi igény köré szerveződik. Azonban várható, hogy felülreprezentáltak lesznek az egyénnel azonos korösszetételű közösségek.
-Feladatunk tehát, hogy először feltérképezzük a közösségeket a hálózatban, ami nem egyértelmű feladat. Létezik \iffalse TODO: létezik helyett valami más szó \fi többfajta közösségfelismerő algoritmus, melyek megpróbálják az ember által elképzelt közösségképet felhasználni a kereséshez, illetve a hálózat esetleges hibáit is figyelembe venni (például hiányzó élek vagy csúcsok). Az általunk továbbiakban használt csoportok az úgynevezett Ahn-módszerrel \cite{tamas_gabor_tdk} \iffalse TODO: kell ez? \fi lettek feltérképezve. % TODO: vagy másik cikk
+Feladatunk tehát, hogy először feltérképezzük a közösségeket a hálózatban, ami nem egyértelmű feladat. Létezik \iffalse TODO: létezik helyett valami más szó \fi többfajta közösségfelismerő algoritmus, melyek megpróbálják az ember által elképzelt közösségképet felhasználni a kereséshez, illetve a hálózat esetleges hibáit is figyelembe venni (például hiányzó élek vagy csúcsok). Az általunk továbbiakban használt csoportok az úgynevezett Ahn-módszerrel \cite{ahn2010link} \iffalse TODO: kell ez? \fi lettek feltérképezve.
 
-Ezután készítettünk egy Gauss-függvénnyel \eqref{simito_gauss} simított hisztogramot, amit az életkoráloszlás ugyanolyan Gauss-függvénnyel simított függvényével normáltunk \eqref{diszkret_konv}:
+Az azonosított, legalább 3 %(?)
+tagú csoportoknak meghatároztuk az átlagéletkorát az ismert életkorú ismerősökből, majd ezután készítettünk egy Gauss-függvénnyel \eqref{simito_gauss} simított hisztogramot, % TODO: ezekből??
+amit az életkoráloszlás ugyanolyan Gauss-függvénnyel simított függvényével normáltunk \eqref{diszkret_konv}:
 %Ezután készítünk egy hisztogramot, még pedig úgy, hogy a csoportok átlagéletkoraira centrált Gauss-görbéket összegezzük az összes csoportra, tehát egy diszkrét konvolúciót végzünk el \eqref{diszkret_konv}.
 \begin{equation} \label{simito_gauss}
-	g(x) = \frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{x^2}{2\sigma^2}}
+	g(x) = \frac{1}{\sqrt{2\pi}\sigma_s} e^{-\frac{x^2}{2\sigma_s^2}}
 \end{equation}
 \begin{equation} \label{diszkret_konv}
 	K(a) = \frac{1}{n_{sm}(a)}\sum_{i=1}^{C} g(a-a_i) \cdot s(n_{i}, \sigma_{i}) % illetve a simított életkoreloszlással való leosztás
 \end{equation} % TODO: miért kell a simítás, egy-egy egyénre lehet, hogy nem az a jó, mint az összesre, 
-\Aref{simito_gauss}. képlet egy normált Gauss-függvény, amelynek a szórásparamétere $\sigma$. A diszkrét konvolúcióban \eqref{diszkret_konv} $a$ az életkort jelöli, $C$ a csoportok számát, $a_i$ az i. csoport átlagéletkorát, $s$ pedig egy súlyfaktort, amely függhet az adott csoport nagyságától ($n_{i}$) és a csoporton belüli életkorok szórásától ($\sigma_i$).
+A normált Gauss-függvény \eqref{simito_gauss} szórásparamétere $\sigma_s$. A diszkrét konvolúcióban \eqref{diszkret_konv} $a$ az életkort jelöli, $C$ a csoportok számát, $a_i$ az i. csoport átlagéletkorát, $s$ pedig egy súlyfaktort, amely függhet az adott csoport nagyságától ($n_{i}$) és a csoporton belüli életkorok szórásától ($\sigma_i$).
 
 A legegyszerűbb eset, amikor $s\equiv 1$, ekkor nem vesszük figyelembe a csoportok tulajdonságait.
 A szumma előtti $n_{sm}$ egy normált, simított életkoreloszlás függvény, amellyel azért osztunk le, hogy kompenzáljuk a középkorúak felülreprezentáltságát a hálózatban.
-A simításhoz használt Gauss-függvény szórását \acite{tamas_gabor_tdk} TDK munkában $\sigma=2$-nek választották. \Aref{hisztogram_pelda}. ábrán láthatunk egy példát a $K(a)$ függvényre. A függvényt csak egész évű pontokban értékeltük ki.
+A simításhoz használt Gauss-függvény szórását \acite{tamas_gabor_tdk} TDK munkában $\sigma_s=2$-nek választották. \Aref{hisztogram_pelda}. ábrán láthatunk egy példát a $K(a)$ függvényre. A függvényt csak egész évű pontokban értékeltük ki.
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.8]{img/82152624_age47.eps}
@@ -153,7 +158,7 @@ A hisztogramokon csúcsok találhatóak, amelyek azt jelentik, hogy több csopor
 \end{equation}
 ahol $h$ a csúcs magassága, $w$ a csúcs félértékszélessége. Tehát minél magasabb és minél keskenyebb egy csúcs, annál jobb. Ezek után a program sorba rendezi a csúcsokat $v$ szerint és a legnagyobb $v$ értékkel rendelkezőt választja becsült életkornak.
 
-Gyakran előfordul olyan, hogy két nagyobb csúcs is jelen van körülbelül 20-25 év távolságra egymástól, ezek valószínűleg két generációt jellemeznek, a szülőket és gyereküket. Egy ilyen esetre láthatunk példát \aref{generaciok}. ábrán.
+Gyakran előfordul olyan, hogy két nagyobb csúcs is jelen van körülbelül 20-25 év távolságra egymástól, ezek valószínűleg két generációt jellemeznek, a szülőket és gyereküket \cite{palchykov2012sex}. Egy ilyen esetre láthatunk példát \aref{generaciok}. ábrán.
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.8]{img/generaciok.eps}
@@ -169,10 +174,19 @@ Azt is meg kell említenünk, hogy a hisztogram simítása miatt a csúcs helye 
 \end{figure}
 \fi
 \subsection{Paraméterek a becslés során} \label{parameterek_subsection}
-Az életkor meghatározása során használunk különböző paramétereket, ilyenek például a Gauss-függvényben \eqref{simito_gauss} a $\sigma$\iffalse TODO: na jó nem biztos, hogy így szép \fi, illetve \aref{diszkret_konv}. képletben lévő $s(n_i, \sigma_i)$-ből származtatott paraméterek. \Acite{tamas_gabor_tdk} munkában $\sigma=2$, $s=1$ választást használjuk kiindulópontnak, és
+Az életkor meghatározása során használunk különböző paramétereket, ilyenek például a Gauss-függvényben \eqref{simito_gauss} a $\sigma_s$\iffalse TODO: na jó nem biztos, hogy így szép \fi, illetve a diszkrét konvolúció képletében \eqref{diszkret_konv} lévő $s(n_i, \sigma_i)$-ből származtatott paraméterek. Egy kiválasztott csoport súlyfaktorát a továbbiakban $s(n_{cs}, \sigma_{cs})$-vel fogjuk jelölni, hiszen a kifejezés nem összegzésben szerepel. \Acite{tamas_gabor_tdk} munkában $\sigma_s=2$, $s=1$ választást használjuk kiindulópontnak, és
 ezt optimalizálatlan esetnek nevezzük.
 
-Többféleképpen is lehet definiálni paramétereket. Feloszthatjuk az $(n_i, \sigma_i)$ teret tartományokra és az egyes tartományokon alkalmazott súlyok lesznek a paraméterek. A felosztást \aref{felosztas}. táblázat szerint végeztem, ebben külön vettem a $\sigma_{cs} = 0$ esetet.
+Az $s(n_{cs},\sigma_{cs})$ függvényt sokféleképpen lehet definiálni, tipikusan valamilyen kevés paraméteres szorzat alakot szokás ilyenkor választani.
+Ennek egy természetes módja lehet $s(n_{cs},\sigma_{cs})$ valamilyen matematikai függvénnyel való megadása.
+Például kipróbáltuk a \eqref{masik_suly} szerinti összefüggést.
+\begin{equation} \label{masik_suly}
+s(n_{cs}, \sigma_{cs}) = \frac{1}{p + \sigma_{cs}}
+\end{equation}
+Ez a súly \eqref{masik_suly} független a csoport méretétől és csak egy paramétert tartalmaz, a $p$-t. Ezen kívül egyszerűen veszi figyelembe a csoport szórását, ha az kicsi, akkor nagyobb a súly, ellenkező esetben kisebb. A paraméter állításával pedig a súly csoportszórásra való érzékenységét lehet könnyen változtatni.
+
+Azonban mi ennél egy kicsit nagyobb szabadságot szeretnénk, ezért pl. feloszthatjuk az $(n_{cs}, \sigma_{cs})$ teret tartományokra és az egyes tartományokon alkalmazott súlyok lesznek a paraméterek. A felosztást \aref{felosztas}. táblázat szerint végeztük, ebben külön vettük a $\sigma_{cs} = 0$ esetet.
+%Többféleképpen is lehet definiálni paramétereket. Feloszthatjuk az $(n_{cs}, \sigma_{cs})$ teret tartományokra és az egyes tartományokon alkalmazott súlyok lesznek a paraméterek. A felosztást \aref{felosztas}. táblázat szerint végeztem, ebben külön vettem a $\sigma_{cs} = 0$ esetet.
 \begin{table}[H]
 	\centering
 	\setstretch{1.5}
@@ -193,31 +207,27 @@ Többféleképpen is lehet definiálni paramétereket. Feloszthatjuk az $(n_i, \
 	\label{felosztas}
 \end{table}
 \noindent
-A 12. paraméter pedig $p_{12} \equiv \sigma$, azaz a hisztogramsimítás erőssége. A $\sigma_{cs} = 0$ eset külön vételére azért van szükség, mert nagyon sok csoportban csak egy embernek ismert az életkora, emiatt annak a szórása $0$. Az $n_{cs}$ ebben az esetben nem a tényleges csoport méret, hanem azoknak az embereknek a száma, akiknek ismert az életkora a csoportban, a vizsgált személyt nem számolva.
-A fenti a paraméterek egy $\mathbf{p} = (p_1, p_2, ..., p_{12})$ vektorba rendezhetőek.
+A 12. paraméter pedig $p_{12} \equiv \sigma_s$, azaz a hisztogramsimítás erőssége. A $\sigma_{cs} = 0$ eset külön vételére azért van szükség, mert nagyon sok csoportban csak egy embernek ismert az életkora, emiatt annak a szórása $0$. Az $n_{cs}$ ebben az esetben nem a tényleges csoport méret, hanem azoknak az embereknek a száma, akiknek ismert az életkora a csoportban, a vizsgált személyt nem számolva.
+A fenti a paraméterek egy $\mathbf{p} = (p_1, p_2, ..., p_{12})$ vektorba rendezhetőek. Fontos megjegyezni, hogy a súlyok nem lehetnek negatívak, tehát $p_i \ge 0$ minden i-re.
 
-A paraméterek fentebb leírt módon való kiválasztása, azért is jó, mert a csoportméretet és a csoportszórást nem csak egymástól függetlenül tudjuk súlyozni, azaz $s(n_i, \sigma_i) \neq s'(n_i)\cdot s''(\sigma_i)$. Ezáltal például megkülönböztethetünk egy osztályt egy munkatársakból álló csoporttól. A csoportméret a kettőnél ugyanúgy nagy lehet, viszont az előbbinek a csoportszórása kisebb, ezért azt gondoljuk, hogy azt nagyobb súllyal kell figyelembe venni.
+A paraméterek előzőekben leírt módon való kiválasztása, azért is jó, mert a csoportméretet és a csoportszórást nem csak egymástól függetlenül tudjuk súlyozni, azaz $s(n_{cs}, \sigma_{cs}) \neq s'(n_{cs})\cdot s''(\sigma_{cs})$. Ezáltal például megkülönböztethetünk egy iskolai osztályt egy munkatársakból álló csoporttól. A csoportméret a kettőnél ugyanúgy nagy lehet, viszont az előbbinek a csoportszórása kisebb, ezért azt gondoljuk, hogy azt nagyobb súllyal kell figyelembe venni.
 \begin{figure}[H]
 	\centering
 	\begin{subfigure}{0.49\textwidth}
 		\includegraphics[scale=0.5]{img/group_sizes.eps}
 		\caption{Csoportok száma a csoportméret ($n_{cs}$) függvényében a különböző ismerősszámú hálózatok esetében}
+		\label{meret_eloszlas}
 	\end{subfigure} \hfill
 	\begin{subfigure}{0.49\textwidth}
 		\includegraphics[scale=0.5]{img/group_devs.eps}
 		\caption{Csoportok száma a csoportszórás ($\sigma_{cs}$) függvényében a különböző ismerősszámú hálózatok esetében}
+		\label{szoras_eloszlas}
 	\end{subfigure}
 	\caption{Csoportok méret- és szóráseloszlásai}
 	\label{meret_szoras_eloszlas}
 \end{figure}
-Abban, hogy a paraméterek határait hol húzzuk meg \aref{meret_szoras_eloszlas}. ábra segített. Megpróbáltunk jellegzetes tartományokat kiválasztani, ebből lett \aref{felosztas}. táblázat szerinti felosztás. Emellett nem szerettünk volna sok paramétert se, mert az optimalizálásnál az nem előnyös.
-
-Egy másik lehetőség a súlyfaktor választására, ha $s(n_i, \sigma_i)$ valamilyen matematikai függvény. Például kipróbáltuk a \eqref{masik_suly} szerinti összefüggést is.
-\begin{equation} \label{masik_suly}
-	s(n_i, \sigma_i) = \frac{1}{p + \sigma_i}
-\end{equation}
-Ez a súly független a csoport méretétől és csak egy paramétert tartalmaz, a $p$-t. Illetve egyszerűen veszi figyelembe a csoport szórását, ha az kicsi, akkor nagyobb a súly, ellenkező esetben kisebb. A paraméter állításával pedig a súly csoportszórásra való érzékenységét lehet könnyen változtatni. Viszont a tartományok felosztását használtuk a már fentebb említett előnyei miatt.
-% TODO: negatív paraméterek?
+Abban, hogy a paraméterek határait hol húzzuk meg \aref{meret_eloszlas} és \aref{szoras_eloszlas} ábra segített. Megpróbáltunk jellegzetes tartományokat kiválasztani, ebből lett \aref{felosztas}. táblázat szerinti felosztás. Emellett nem szerettünk volna sok paramétert se, mert az optimalizálásnál az nem előnyös.
+%TODO: negatív paramétereket nem engedjük meg
 
 \subsection{Sikerességi ráták}
 Ha a becslés pontosságát, sikerességét számokban akarjuk kifejezni, akkor a valódi és a becsült életkor közötti különbséget használhatjuk fel. A becslést elvégezzük az összes személyre, akinek tudjuk az életkorát, majd megnézzük, hogy a becslések hány százalékában volt a becsült és a valós korok közti eltérés $\pm 1, 2,3,4,5$ év. Optimalizálatlan esetben a sikerességek \aref{telefon_sikeresseg_nemopt}. és \aref{iwiw_sikeresseg_nemopt}. táblázatban foglaltak szerint alakulnak.
@@ -265,7 +275,7 @@ Ha a becslés pontosságát, sikerességét számokban akarjuk kifejezni, akkor 
 \end{table}
 A sikerességet a továbbiakban a $\pm 2$ éven belüli becslések hányadosának vesszük. A későbbiekben erre a hibahatárra fogunk optimalizálni, ezért el is nevezzük $E(\mathbf{p})$-nek a $\pm 2$ éven belüli sikerességet, amely egy $0$ és $1$ közötti szám.
 % TODO: miért jobbak az iwiw-esek?
-\subsection{Kiértékelési idő}
+\subsection{Kiértékelési idő} \label{kiertekelesi_ido}
 Az $E(\mathbf{p})$ függvény kiértékelési ideje nagyon fontos az optimizálás gyorsasága szempontjából, hiszen $E(\mathbf{p})$ kiszámolása alapvető eleme az összes módszernek. Az életkorbecslő eljárás legtöbb processzoridőt használó része a diszkrét konvolúció \eqref{diszkret_konv}. Ezt ahelyett, hogy ciklussal számoltuk volna, vektorizáltuk. Ennek következtében a számítógép sokkal gyorsabban ki tudja értékelni a $K(a)$ függvényt. Ezen alapszik a fizikusok köreiben is gyakran használt MATLAB programnyelv gyorsasága is. % TODO: jó ez így? ennyit írni az optimalizációról? esetleg: Ezen -> vektorizáláson
 
 A hisztogram kiszámolásának ideje leginkább a csoportok számától függ, ezért az összes csoport száma arányos lesz a kiértékelési idővel.
@@ -395,7 +405,7 @@ A kezdő populációt véletlenszerűen generált egyénekből hozzuk létre. Je
 
 Miután elvégeztük a keresztezést szelekciót hajtunk végre, amely hasonló az evolúció esetén történő természetes kiválasztódáshoz. Először az összes egyedre kiszámítjuk az $E(\mathbf{p})$ sikerességi hányadost, ezeket sorba rendezzük a függvény értéke szerint, majd a legjobbakat kiválasztjuk, a többit pedig eldobjuk. Érdemes annyi egyedet kiválasztani, mint amennyi a populáció kezdő mérete volt, így az algoritmus futási ideje kiszámítható marad. A kiválasztott egyedek alkotják a következő generációt. A megállási feltétel lehet olyan, hogy az utolsó néhány generáció legjobb egyedeit figyelve már nem tapasztalunk javulást, vagy lehet egyszerűen egy fix generációszámmal meghatározni. Az egyszerűség kedvéért az utóbbit alkalmazzuk.
 
-Ha csak a keresztezést és szelekciót alkalmazzuk egy olyan probléma állhat fent, hogy a paraméterteret nem járjuk be csak egy kis tartományon. Ez az optimalizáció hatékonyságát csökkenti. Úgy tehetünk ellene, ha minden generáció esetében az egyedek egy részét kicsivel megváltoztatjuk, ezt a műveletet mutációnak nevezzük. Gyakorlatban az összes egyed, összes tulajdonságát egy bizonyos valószínűséggel megváltoztatjuk. A változás alatt azt értjük, hogy az eredeti értékhez hozzáadunk egy $0,5$ szórású, $0$ várható értékű normális eloszlású változót. % TODO: változó? 
+Ha csak a keresztezést és szelekciót alkalmazzuk egy olyan probléma állhat fent, hogy a paraméterteret nem járjuk be csak egy kis tartományon. Ez az optimalizáció hatékonyságát csökkenti. Úgy tehetünk ellene, ha minden generáció esetében az egyedek egy részét kicsivel megváltoztatjuk, ezt a műveletet mutációnak nevezzük. Gyakorlatban az összes egyed, összes tulajdonságát egy bizonyos valószínűséggel megváltoztatjuk. A változás alatt azt értjük, hogy az eredeti értékhez hozzáadunk egy $0,5$ szórású, $0$ várható értékű normális eloszlású számot. % TODO: változó? 
 
 \begin{figure}[H]
 	\centering
@@ -407,8 +417,6 @@ Ha csak a keresztezést és szelekciót alkalmazzuk egy olyan probléma állhat 
 A populáció mérete állítható, általában minél nagyobbat választunk, annál jobb lesz az optimalizáció (bizonyos értékig), viszont figyelembe kell venni a futási időt is, amely arányos a populáció méretével.
 
 A genetikus algoritmust az előző két optimalizációs módszerrel összehasonlítva sokdimenziós paramétertéren is jól működik és nem lokális szélsőértéket talál, hanem egy viszonylag jó optimumot. Nagy előnyt jelent, hogy több megoldást tárol el egyszerre, mert lehet, hogy két teljesen különböző egyed is hasonlóan jó sikerességi hányadosú, mutációval pedig az egyik tökéletesíthető a későbbi generációkban.
-\subsection{Kiértékelések száma}
-%TODO: talán a kiértékelési idővel összevonva?
 
 \section{Eredmények}
 A különböző optimalizációs módszerek eredményeit más-más szempontból lehet vizsgálni. Alapvetően a paramétereket és a hozzájuk tartozó sikerességeket érdemes valahogyan szemléltetni. A módszereket többnyire az 50 ismerősű iWiW-es adatokon próbáltuk ki, mert a kiértékelési idő annál a legkisebb.
@@ -418,7 +426,7 @@ A sikerességet ennél a módszernél a lépésszámok függvényében adatjuk m
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.8]{img/grad_fix.eps}
-	\caption{Sikeresség az iterációszám függvényében, kezdőpont az optimalizálatlan eset (iWiW 50 ismerős)}
+	\caption{Sikeresség az iterációszám függvényében, kezdőpont az optimalizálatlan eset, $\gamma = 1$ (iWiW 50 ismerős)}
 	\label{grad_fix}
 \end{figure}
 Meg kell jegyezni, hogy a módszer végeredménye nagyban függ a kezdőponttól, hiszen determinisztikus. Megállási feltételt sem egyszerű definiálni, mivel sok lokális minimum van az $E(\mathbf{p})$ függvényben. \Aref{grad_fix}. ábrán is látszik, hogy a kb. 20 és 50 közötti részen sokszor visszaesik a sikeresség értéke, viszont az intervallumon összességében nő $E(\mathbf{p})$ értéke. Ez alapján a megállási feltételt a következőképpen lehetne meghatározni: akkor álljon le az iteráció, amikor az utolsó tíz lépésben nem volt nagyobb érték, mint azelőtt. %TODO: érthető? tíz helyett valami betű konstans?
@@ -434,16 +442,17 @@ Mivel ez egy sztochasztikus módszer, ezért többszöri futás eredményeit is 
 \end{figure}
 \Aref{sa_legek}. ábrán látható két sikeresség függvény, melyeket a szimulált hűtés ötszöri futtatása után választottunk ki, a legrosszabb és a legjobb végeredményűt. Ebből látszik, hogy mekkora eltérés lehet két futás között, a rosszabb 57,6 \%, a jobb 61,4 \% sikeresség lett. Mindkettőnél megfigyelhető kis hőmérsékleten (kb. $0,6 \cdot 10^{-3}$ alatt) egy szinte vízszintes rész, ez amiatt van, mert ilyen kis hőmérsékleten a módszer szinte már csak a jobb megoldások felé mozdul el.
 \subsection{Genetikus algoritmus}
-A genetikus algoritmus esetében minden generációban sok egyed van, melyek sikerességét együtt nehéz lenne megjeleníteni, ezért csak az adott generáció legjobb egyedének sikerességét választjuk ki, majd ábrázoljuk.
+A genetikus algoritmus esetében minden generációban sok egyed van, melyek sikerességét együtt nehéz lenne megjeleníteni, ezért csak az adott generáció legjobb egyedének sikerességét választjuk ki, majd ábrázoljuk. A továbbiakban 10-es populációméretet használunk a futási idő miatt, úgy tűnik, hogy már ezzel is elég jó eredményeket lehet elérni. Azonban meg kell jegyezni, hogy a gyakorlatban ennél jóval nagyobb populációméretet szoktak alkalmazni.
 \begin{figure}[H]
 	\centering
-	
-	\caption{}
-	\label{}
+	\includegraphics[scale=0.8]{img/ga_mutation.eps}
+	\caption{Legjobb egyedek sikeressége a generáció függvényében különböző mutáció értékek mellett, populációméret: 10 (iWiW 50 ismerős)}
+	\label{ga_mutation}
 \end{figure}
+\Aref{ga_mutation}. ábrán látható a generációk legjobb egyedeinek sikeressége. Megállapíthatjuk, hogy mutáció nélkül hamar véget ér a javulás és beáll egy szintre a sikeresség. Ha egy kis mutációt (10 \%) állítunk be, akkor a generációk során szinte folyamatosan növekszik az $E(\mathbf{p})$ érték, míg ha túl nagyot (50 \%), akkor az már ront a módszer hatékonyságán. Megfigyelhető, hogy a három esetben \mbox{más-más} sikerességről indul el az algoritmus, ez amiatt van, mert a kezdő populációt véletlenszerűen generáljuk.
 
 \subsection{Összehasonlítás}
-Az optimalizációs módszerek végeredményeit összehasonlíthatjuk, illetve összevethetjük az optimalizálatlan eset sikerességeivel is.
+Az optimalizációs módszerek végeredményeit összehasonlíthatjuk, illetve összevethetjük az optimalizálatlan eset sikerességeivel is. \Aref{eredmeny_osszehasonlitas}. táblázatban összehasonlítjuk az optimizálatlan eset és a genetikus algoritmus sikerességeit. A genetikus algoritmust 10-es populációmérettel, 100 generációig, 25 \%-os mutációval futtattuk.
 \begin{table}[H]
 	\centering
 	\setstretch{1.5}
@@ -455,34 +464,44 @@ Az optimalizációs módszerek végeredményeit összehasonlíthatjuk, illetve �
 		 \hline
 		 Optimizálatlan eset & 50,6 \% & 63,8 \% & 77,5 \% & 81,9 \% & 35,4 \% \\
 		 \hline
-		 Genetikus algoritmus & 61,5 \% & 74,3 \% & 86,7 \% & 89,1 \% & 39,4 \% \\
+		 Genetikus algoritmus & 61,8 \% & 74,3 \% & 86,7 \% & 89,1 \% & 39,4 \% \\
 		 \hline
 	\end{tabular}
-	\caption{}
+	\caption{Az optimalizációs módszerek összehasonlítása végeredmény szempontjából}
+	\label{eredmeny_osszehasonlitas}
 \end{table}
 
+Az optimalizációs módszereket összehasonlíthatjuk a futási idő szempontjából is. Mindegyik ismertetett módszer az $E(\mathbf{p})$ kiértékelésén alapszik, ennek ideje függ attól, hogy melyik adatbázison végzünk optimalizációt (\ref{kiertekelesi_ido}. rész), de független például a paraméterektől. Emiatt a kiértékelések számát vizsgáljuk a futási idő helyett.
+
+A gradiens módszer esetében egy lépéshez 13 kiértékelés kell, hiszen az adott pontban és attól mind a 12 irányba $\Delta x$-el meg kell határozni $E$-t. A szimulált hűtésnél a kiértékelések számát adjuk meg paraméternek. A genetikus algoritmusnál a kiértékelések száma: $\displaystyle 1{,}5 \cdot n_{pop} \cdot n_{gen} $, ahol $n_{pop}$ a populációméret, $n_{gen}$ pedig a generációk száma. A másfeles szorzó a keresztezés miatt kell. % TODO: bővebb magyarázat
+\begin{table}[H]
+	\centering
+	\setstretch{1.5}
+	\begin{tabular}{|c|c|c|}
+		\hline
+		Módszer és feltételek & Elért sikeresség & Kiértékelések száma \\
+		\hline
+		{\setstretch{1.1}\makecell{Gradiens módszer \\ kezdőpont: optimizálatlan eset}} & 61,2 \% & 1040 \\
+		\hline
+		{\setstretch{1.1}\makecell{Gradiens módszer \\ legjobb, 10 véletlenszerű kezdőponttal}} & 58,2 \% & 13000 \\
+		\hline
+		{\setstretch{1.1}\makecell{Szimulált hűtés \\ 5-szöri futtatásból a legjobb}} & 61,4 \% & 5000 \\
+		\hline
+		Genetikus algoritmus & 61,8 \% & 1500 \\
+		\hline
+	\end{tabular}
+	\caption{Elért eredmények összehasonlítása a kiértékelések száma szerint (iWiW 50 ismerős)}
+	\label{kiertekelesek_osszehasonlitas}
+\end{table}
+\Aref{kiertekelesek_osszehasonlitas}. táblázatban a különböző módszereket hasonlítjuk össze az elért sikeresség és a kiértékelések száma szempontjából. Ezekből azt a következtetést vonhatjuk le, hogy a leghatékonyabb módszer esetünkben a genetikus algoritmus, ennek a magyarázata az lehet, hogy ez az egyetlen, amely több megoldással dolgozik, így könnyen be tudja járni a paraméterteret. A gradiens módszert 100 lépésig futtattuk le 10-szer, véletlen kezdőpontokból indítva, ekkor nem lett olyan jó az eredmény, mint amikor az optimalizálatlan pontból indítottuk. Ebből látszik a módszer hátránya, a végeredmény nagyban függ a kezdőponttól, illetve ilyen sok dimenzió esetén egy lépés is sok kiértékelést kíván.
 \subsection{Optimális paraméterek}
 A bemutatott optimalizációs módszerek közül a genetikus algoritmus eredményei voltak stabilan a legjobbak, ezért mindegyik adatbázisra lefuttattuk. Paraméterekként a következőket használtuk: 10-es populációméret, 100 generáció, 25 \%-os mutáció.
 \begin{table}[H]
 	\centering
 	\setstretch{1.5} % [width=1.5cm,height=1.2cm]
-	\begin{subtable}{0.49\textwidth}
-		\begin{tabular}{|c|c|c|c|c|}
-			\hline
-			\diagbox[width=1.5cm,height=1.2cm]{$\sigma_{cs}$}{$n_{cs}$} & $]0;1]$ & $]1;5]$ & $]5;10]$ & $]10;\infty[$  \\
-			\hline
-			$0$ & 1,14 & \multicolumn{3}{|c|}{3,43} \\
-			\hline
-			$]0;3]$ & \multicolumn{2}{|c|}{2,14} & 5,88 & 4,85 \\
-			\hline
-			$]3;6]$ & \multicolumn{2}{|c|}{0,05} & 3,27 & 4,06 \\
-			\hline
-			$]6;\infty[$  & \multicolumn{2}{|c|}{0,0} & 0,0 & 0,0 \\
-			\hline
-		\end{tabular}
-		\caption{legjobb}
-	\end{subtable}
-	\begin{subtable}{0.49\textwidth}
+	\begin{subtable}{0.49\linewidth}
+		\centering
+		\captionsetup{justification=centering}
 		\begin{tabular}{|c|c|c|c|c|}
 			\hline
 			\diagbox[width=1.5cm,height=1.2cm]{$\sigma_{cs}$}{$n_{cs}$} & $]0;1]$ & $]1;5]$ & $]5;10]$ & $]10;\infty[$  \\
@@ -496,33 +515,174 @@ A bemutatott optimalizációs módszerek közül a genetikus algoritmus eredmén
 			$]6;\infty[$  & \multicolumn{2}{|c|}{1,53} & 0,13 & 0,36 \\
 			\hline
 		\end{tabular}
-		\caption{0.25-ös mutációval a legjobb}
+		\caption{Sikeresség: 61,8 \%, $\sigma_s = 2,02$ \mbox{(iWiW 50 ismerős)}}
+		\label{iwiw50}
+		% 88 0.6180583300039952 [2.2190596478, 0.0, 1.52911575598, 7.00017469446, 0.572481611368, 0.126016098879, 3.84572039424, 3.41936582779, 2.02050886372, 0.296781781829, 4.78669902702, 0.357787782446]
 	\end{subtable}
-	\caption{iWiW 50 ismerős} % A különböző tartományokban alkalmazott súlyok
+	%\hspace{1.5em}%
+	\begin{subtable}{0.49\linewidth}
+		\centering
+		\captionsetup{justification=centering}
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			\diagbox[width=1.5cm,height=1.2cm]{$\sigma_{cs}$}{$n_{cs}$} & $]0;1]$ & $]1;5]$ & $]5;10]$ & $]10;\infty[$  \\
+			\hline
+			$0$ & 0,39 & \multicolumn{3}{|c|}{5,48} \\
+			\hline
+			$]0;3]$ & \multicolumn{2}{|c|}{3,13} & 7,18 & 5,87 \\
+			\hline
+			$]3;6]$ & \multicolumn{2}{|c|}{1,25} & 1,57 & 6,71 \\
+			\hline
+			$]6;\infty[$  & \multicolumn{2}{|c|}{1,12} & 1,42 & 0,0 \\
+			\hline
+		\end{tabular}
+		\caption{Sikeresség: 75,0 \%, $\sigma_s = 1,73$ \mbox{(iWiW 100 ismerős)}}
+		\label{iwiw100}
+		% 99 0.7501499700059988 [3.1321746737, 1.25479943576, 1.12168241311, 7.17811074983, 1.56906191897, 1.42444363343, 5.86756360529, 6.71328451416, 1.72979022826, 0.390824662838, 5.48425338615, 0.0]
+	\end{subtable}
+	\newline
+	\vspace*{0.3cm}
+	\newline
+	\begin{subtable}{0.49\textwidth}
+		\centering
+		\captionsetup{justification=centering}
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			\diagbox[width=1.5cm,height=1.2cm]{$\sigma_{cs}$}{$n_{cs}$} & $]0;1]$ & $]1;5]$ & $]5;10]$ & $]10;\infty[$  \\
+			\hline
+			$0$ & 0,0 & \multicolumn{3}{|c|}{4,26} \\
+			\hline
+			$]0;3]$ & \multicolumn{2}{|c|}{2,02} & 11,05 & 7,47 \\
+			\hline
+			$]3;6]$ & \multicolumn{2}{|c|}{0,94} & 0,0 & 4,75 \\
+			\hline
+			$]6;\infty[$  & \multicolumn{2}{|c|}{0,53} & 0,37 & 0,18 \\
+			\hline
+		\end{tabular}
+		\caption{Sikeresség: 86,7 \%, $\sigma_s = 2,05$ \mbox{(iWiW 200 ismerős)}}
+		\label{iwiw200}
+		% 99 0.8665958952583156 [2.01507869902, 0.940373220994, 0.531818364321, 11.0462972087, 0.0, 0.370430744635, 7.47428470511, 4.74706162037, 2.05065187643, 0.0, 4.25890909065, 0.181368006651]
+	\end{subtable}
+	\begin{subtable}{0.49\textwidth}
+		\centering
+		\captionsetup{justification=centering}
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			\diagbox[width=1.5cm,height=1.2cm]{$\sigma_{cs}$}{$n_{cs}$} & $]0;1]$ & $]1;5]$ & $]5;10]$ & $]10;\infty[$  \\
+			\hline
+			$0$ & 0,0 & \multicolumn{3}{|c|}{3,96} \\
+			\hline
+			$]0;3]$ & \multicolumn{2}{|c|}{2,28} & 4,78 & 5,24 \\
+			\hline
+			$]3;6]$ & \multicolumn{2}{|c|}{0,0} & 2,21 & 3,46 \\
+			\hline
+			$]6;\infty[$  & \multicolumn{2}{|c|}{0,99} & 0,26 & 0,21 \\
+			\hline
+		\end{tabular}
+		\caption{Sikeresség: 89,1 \%, $\sigma_s = 1,98$ \mbox{(iWiW 300 ismerős)}}
+		\label{iwiw300}
+		% 98 0.8911500236630383 [2.27978602802, 0.0, 0.986886438363, 4.77599632606, 2.21100156912, 0.256243342637, 5.2425609244, 3.46303493279, 1.97990200337, 0.0, 3.96303417583, 0.211319555663]
+	\end{subtable}
 \end{table}
+\begin{table}[H]
+	\centering
+	\ContinuedFloat
+	\setstretch{1.5}
+	\begin{subtable}{0.49\textwidth}
+		\centering
+		\captionsetup{justification=centering}
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			\diagbox[width=1.5cm,height=1.2cm]{$\sigma_{cs}$}{$n_{cs}$} & $]0;1]$ & $]1;5]$ & $]5;10]$ & $]10;\infty[$  \\
+			\hline
+			$0$ & 3,06 & \multicolumn{3}{|c|}{7,35} \\
+			\hline
+			$]0;3]$ & \multicolumn{2}{|c|}{5,84} & 3,19 & 5,31 \\
+			\hline
+			$]3;6]$ & \multicolumn{2}{|c|}{3,03} & 5,39 & 0,96 \\
+			\hline
+			$]6;\infty[$  & \multicolumn{2}{|c|}{0,0} & 1,09 & 0,0 \\
+			\hline
+		\end{tabular}
+		\caption{Sikeresség: 39,4 \%, $\sigma_s = 4,2$ \mbox{(Telefonos 60-69 ismerős)}}
+		% 94 0.39424995465263923 [5.84075942794, 3.03241117506, 0.0, 3.1891786535, 5.38714465014, 1.089220794, 5.31333112459, 0.964042800655, 4.20305260237, 3.06091829361, 7.35337572118, 0.0]
+		\label{telefon_eredmeny}
+	\end{subtable}
+	\caption{A különböző tartományok súlyai és a simítás erőssőge ($\sigma_s$) a legjobb sikerességek esetén, genetikus algoritmussal számolva 10-es populációméret, 25 \%-os mutáció és 100 generáció mellett} % A különböző tartományokban alkalmazott súlyok
+	\label{eredmeny_tablazat}
+\end{table}
+\Aref{eredmeny_tablazat}. táblázatban találhatóak az optimalizáció eredményeképpen kapott paraméterek. Ezen súlyfaktorok alapján is lehetne következtetéseket levonni, viszont a súlyok szórása miatt ezeket inkább átlagoljuk az iWiW-es adatok esetében. A telefonos adatok súlyait azért nem vesszük bele az átlagolásba, mert ott a hálózat struktúrája is más, mint a különböző ismerősszámú iWiW-es adatoknál.
+Az viszont így is megállapítható, hogy a telefonos adatok esetében a kisebb csoportoknak nagyobb a szerepe, mint az iWiW-es adatok esetében. Ezen kívül a simítás erőssége a telefonos adatok esetében kétszer akkora.
 \begin{table}[H]
 	\centering
 	\setstretch{1.5}
 	\begin{tabular}{|c|c|c|c|c|}
 		\hline
-		\diagbox{$\sigma_{cs}$}{$n_{cs}$} & $]0;1]$ & $]1;5]$ & $]5;10]$ & $]10;\infty[$  \\
+		\diagbox[width=1.5cm,height=1.2cm]{$\sigma_{cs}$}{$n_{cs}$} & $]0;1]$ & $]1;5]$ & $]5;10]$ & $]10;\infty[$  \\
 		\hline
-		$0$ & 0.24 & \multicolumn{3}{|c|}{5.24} \\
+		$0$ & 0,17$\pm$0,18 & \multicolumn{3}{|c|}{4,62$\pm$0,58} \\
 		\hline
-		$]0;3]$ & \multicolumn{2}{|c|}{2.47} & 9.78 & 5.8 \\
+		$]0;3]$ & \multicolumn{2}{|c|}{2,41$\pm$0,43} & 7,5$\pm$2,26 & 5,61$\pm$1,3 \\
 		\hline
-		$]3;6]$ & \multicolumn{2}{|c|}{0.0} & 2.2 & 6.11 \\
+		$]3;6]$ & \multicolumn{2}{|c|}{0,55$\pm$0,56} & 1,09$\pm$0,86 & 4,59$\pm$1,34 \\
 		\hline
-		$]6;\infty[$  & \multicolumn{2}{|c|}{0.28} & 1.07 & 0.0 \\
+		$]6;\infty[$  & \multicolumn{2}{|c|}{1,04$\pm$0,36} & 0,54$\pm$0,52 & 0,19$\pm$0,13 \\
 		\hline
 	\end{tabular}
-	\caption{A különböző tartományokban alkalmazott súlyok}
+	\caption{iWiW-es adatok eredményeinek átlagai $\pm$ szórás \aref{iwiw50}, \ref{iwiw100}, \ref{iwiw200}, \ref{iwiw300} táblázatok alapján, $\sigma_s = 1{,}95 \pm 0{,}13$}
+	\label{iwiw_atlag}
 \end{table}
-\begin{figure}[H]
+\Aref{iwiw_atlag}. táblázat tartalmazza a négy iWiW-es adatbázis eredményeinek átlagát és szórását. Utóbbi segítségével szeretnénk becsülni az adott paraméter fontosságát, azt gondoljuk, hogy ha kicsi a szórás, akkor az a paraméter releváns.
+\begin{table}[H]
 	\centering
-	\includegraphics[scale=0.8]{img/genetic_100pop_mutation_tel.eps}
-\end{figure}
+	\setstretch{1.5}
+	\begin{subtable}{0.49\linewidth}
+		\centering
+		\captionsetup{justification=centering}
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			\diagbox[width=1.5cm,height=1.2cm]{$\sigma_{cs}$}{$n_{cs}$} & $]0;1]$ & $]1;5]$ & $]5;10]$ & $]10;\infty[$  \\
+			\hline
+			$0$ & \cellcolor{black!2.29197724866} & \multicolumn{3}{|c|}{\cellcolor{black!61.6417959552}} \\
+			\hline
+			$]0;3]$ & \multicolumn{2}{|c|}{\cellcolor{black!32.1530429639}} & \cellcolor{black!100.0} & \cellcolor{black!74.7656558385} \\
+			\hline
+			$]3;6]$ & \multicolumn{2}{|c|}{\cellcolor{black!7.31710097424}} & \cellcolor{black!14.5082036667} & \cellcolor{black!61.1413096658} \\
+			\hline
+			$]6;\infty[$  & \multicolumn{2}{|c|}{\cellcolor{black!13.8980750161}} & \cellcolor{black!7.25697267743} & \cellcolor{black!2.50153620463} \\
+			\hline
+		\end{tabular}
+		\caption{Átlagolt eredmény iWiW-es adatok}
+	\end{subtable}
+	\begin{subtable}{0.49\linewidth}
+		\centering
+		\captionsetup{justification=centering}
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			\diagbox[width=1.5cm,height=1.2cm]{$\sigma_{cs}$}{$n_{cs}$} & $]0;1]$ & $]1;5]$ & $]5;10]$ & $]10;\infty[$  \\
+			\hline
+			$0$ & \cellcolor{black!41.6260287747} & \multicolumn{3}{|c|}{\cellcolor{black!100.0}} \\
+			\hline
+			$]0;3]$ & \multicolumn{2}{|c|}{\cellcolor{black!79.4296340811}} & \cellcolor{black!43.3702665881} & \cellcolor{black!72.2570330425} \\
+			\hline
+			$]3;6]$ & \multicolumn{2}{|c|}{\cellcolor{black!41.2383548732}} & \cellcolor{black!73.260837667} & \cellcolor{black!13.1102073008} \\
+			\hline
+			$]6;\infty[$  & \multicolumn{2}{|c|}{\cellcolor{black!0.0}} & \cellcolor{black!14.8125274065} & \cellcolor{black!0.0} \\
+			\hline
+		\end{tabular}
+		\caption{Telefonos adatok 60-69}
+	\end{subtable}
+	\caption{Az átlagsúlyok szemléltetése szürkeárnyalatos skálán, a fekete a legnagyobb, a fehér a nulla súlyt jelöli}
+	\label{suly_szemleltetes}
+\end{table}
+\Aref{suly_szemleltetes}. táblázatban szemléltetjük az iWiW-es és telefonos adatokra vonatkozó súlyokat. A kettőben közös, hogy a 6-nál nagyobb szórású csoportok nem számítanak sokat. Mindkettő esetében sokatmondó az, hogy melyik tartomány a legnagyobb súlyú, iWiW-nél a kis szórású, közepes méretű csoportok a legjelentősebbek, míg a telefonosnál a 0 szórású, legalább két ismert életkorral rendelkező csoportok a fontosak. % TODO: utóbbi gyanús picit
+A két hálózat esetében különbözik még az egy ismert életkorral rendelkező csoportok súlya, ez az iWiW-nél szinte nulla, a telefonosnál viszont egész nagy.
+
 \section{Összegzés}
+Munkánk során bemutattunk három optimalizációs módszert, a gradiens módszert, a szimulált hűtést és a genetikus algoritmust. Majd ezeket alkalmaztuk az ismertetett életkorbecslés problémára. Több szempontból összehasonlítottuk a három módszert, egyrészt az elért sikerességek, másrészt a kiértékelések száma (futásidő) alapján. Ezek után arra következtetésre jutottunk, hogy a leghatékonyabb módszer a genetikus algoritmus. Azaz legjobb sikerességet lehető legkevesebb kiértékeléssel sikerült elérni vele.
+Az optimalizálatlan esethez képest a sikerességeket iWiW-es adatok esetében kb. 10 \%-al, telefonos adatok esetében kb. 5 \%-al sikerült növelni.
+Az eredményül kapott súlyfaktorokat diszkutáltuk, illetve összehasonlítottuk az iWiW és telefonos hálózatokra kapott súlyokat.
+
 
 %\renewbibmacro{in:}{}
 %\printbibliography[title={Irodalomjegyzék}]
