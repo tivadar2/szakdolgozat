@@ -102,7 +102,7 @@ Ezen a sok passzívan gyűjtött adaton kívül gyakran aktívan is osztunk meg 
 Azon kívül, hogy újszerű módon kaphatunk válaszokat az emberek szociális életét érintő klasszikus kérdésekre tudományos szempontból, ennek a hatalmas mennyiségű adat vizsgálatának hasznos alkalmazásai lehetnek. A feldolgozás után előrejelzéseket, becsléseket tehetünk különböző eseményekre a mindennapi életünk egyszerű ügyeitől kezdve akár globális méretű krízisekre is.
 Például fejlesztettek ki már olyan jelzőrendszert, mely tweeteket (a Twitter mikroblog szolgáltatás bejegyzései) használ fel földrengések észlelésére szinte valós időben \cite{sakaki2010earthquake}.
 Később kiegészítették a jelzőrendszerüket, úgy hogy szivárványok és városi dugók észlelésére is alkalmas legyen \cite{sakaki2013tweet}. Munkájuk gyakorlati jelentősége abban mutatkozik meg, hogy a jelzőrendszer olyan gyorsan reagálhat, hogy a jelzés előbb megérkezhet, mint a földrengés hullámai bizonyos területeken.
-Másik példa a Twitter bejegyzéseket használatára a választások eredményének jóslása \cite{tumasjan2010predicting}, melynek persze vannak határai \cite{gayo2011limits, gayo2012wanted}.
+Másik példa a Twitter bejegyzések használatára a választások eredményének jóslása \cite{tumasjan2010predicting}, melynek persze vannak határai \cite{gayo2011limits, gayo2012wanted}.
 Ginsberg és munkatársai megbecsülték az influenza terjedését az Egyesült Államokban \cite{ginsberg2009detecting}. Vannak egyéb példák is a szociális média felhasználására, hogy előrejelezzék hírek népszerűségét, a felhasználók által írt megjegyzések számában \cite{tsagkias2009predicting, tsagkias2010news} vagy a hírmegtekintések számában \cite{castillo2014characterizing} mérve.
 \cite{bigData_wikipedia}
 
@@ -121,18 +121,19 @@ Az életkor meghatározásához alapvetően az adott illető egocentrikus háló
 Ebben az alrészben a \cite{tamas_gabor_tdk} TDK dolgozatban leírt életkorbecslő eljárást ismertetem, amely alapul szolgál ezen szakdolgozatnak.
 
 %Az embereket jól jellemzik a közösségek, amelyeknek tagjai. Ilyenek például az osztályok, a családok, a munkatársi vagy baráti körök. Egy kiválasztott egyén életkora összefüggésbe hozható a közösségei átlagéletkoraival. Ez az összefüggés nem triviális, viszont felhasználható a vizsgált személy korának meghatározásához. 
-Az emberek közösségekben élik életüket, mely lehet munkahely, baráti kör, család, hobbi, stb. Ezen közösségek jellemzője, hogy a tagjaikat valami összeköti, közös érdeklődés, tevékenység stb. Nagyon sok féle homofília lehet az emberek között, de ezek közül a legtermészetesebb az életkor, hiszen kortársainkkal vagyunk általában azonos élethelyzetben, azonosak a problémáink. Az egyének szociális kapcsolatrendszerét az egocentrikus hálózattal tudjuk jellemezni (pl. \ref{egocentrikus}. ábra), amelyben viszonylag természetesen jelennek meg a közösségek.
+Az emberek közösségekben élik életüket, mely lehet munkahely, baráti kör, család, hobbi, stb. Ezen közösségek jellemzője, hogy a tagjaikat valami, közös érdeklődés, tevékenység vagy egyéb összeköti. %TODO: itt valami magyarosabbat?
+Nagyon sok féle homofília lehet az emberek között, de ezek közül a legtermészetesebb az életkor, hiszen kortársainkkal vagyunk általában azonos élethelyzetben, azonosak a problémáink. Az egyének szociális kapcsolatrendszerét az egocentrikus hálózattal tudjuk jellemezni (pl. \ref{egocentrikus}. ábra), amelyben viszonylag természetesen jelennek meg a közösségek.
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.4]{img/ccmy.png}
-	\caption{Egy egocentrikus hálózat} % TODO: aláírás
+	\caption{Egy egocentrikus hálózat, fekete csúcs a vizsgált személy} % TODO: aláírás
 	\label{egocentrikus}
 \end{figure}
 A pusztán hálózati megközelítés azonban nem ad számot arról, hogy egy adott közösség milyen konkrét társadalmi igény köré szerveződik. Azonban várható, hogy felülreprezentáltak lesznek az egyénnel azonos korösszetételű közösségek.
 Feladatunk tehát, hogy először feltérképezzük a közösségeket a hálózatban, ami nem egyértelmű feladat. Létezik \iffalse TODO: létezik helyett valami más szó \fi többfajta közösségfelismerő algoritmus, melyek megpróbálják az ember által elképzelt közösségképet felhasználni a kereséshez, illetve a hálózat esetleges hibáit is figyelembe venni (például hiányzó élek vagy csúcsok). Az általunk továbbiakban használt csoportok az úgynevezett Ahn-módszerrel \cite{ahn2010link} \iffalse TODO: kell ez? \fi lettek feltérképezve.
 
 Az azonosított, legalább 3 %(?)
-tagú csoportoknak meghatároztuk az átlagéletkorát az ismert életkorú ismerősökből, majd ezután készítettünk egy Gauss-függvénnyel \eqref{simito_gauss} simított hisztogramot, % TODO: ezekből??
+tagú csoportoknak meghatároztuk az átlagéletkorát az ismert életkorú ismerősökből, majd ezután készítettünk egy \mbox{Gauss-függvénnyel \eqref{simito_gauss}} simított hisztogramot, % TODO: ezekből??
 amit az életkoráloszlás ugyanolyan Gauss-függvénnyel simított függvényével normáltunk \eqref{diszkret_konv}:
 %Ezután készítünk egy hisztogramot, még pedig úgy, hogy a csoportok átlagéletkoraira centrált Gauss-görbéket összegezzük az összes csoportra, tehát egy diszkrét konvolúciót végzünk el \eqref{diszkret_konv}.
 \begin{equation} \label{simito_gauss}
@@ -174,7 +175,7 @@ Azt is meg kell említenünk, hogy a hisztogram simítása miatt a csúcs helye 
 \end{figure}
 \fi
 \subsection{Paraméterek a becslés során} \label{parameterek_subsection}
-Az életkor meghatározása során használunk különböző paramétereket, ilyenek például a Gauss-függvényben \eqref{simito_gauss} a $\sigma_s$\iffalse TODO: na jó nem biztos, hogy így szép \fi, illetve a diszkrét konvolúció képletében \eqref{diszkret_konv} lévő $s(n_i, \sigma_i)$-ből származtatott paraméterek. Egy kiválasztott csoport súlyfaktorát a továbbiakban $s(n_{cs}, \sigma_{cs})$-vel fogjuk jelölni, hiszen a kifejezés nem összegzésben szerepel. \Acite{tamas_gabor_tdk} munkában $\sigma_s=2$, $s=1$ választást használjuk kiindulópontnak, és
+Az életkor meghatározása során használunk különböző paramétereket, ilyenek például a Gauss-függvényben \eqref{simito_gauss} a $\sigma_s$\iffalse TODO: na jó nem biztos, hogy így szép \fi, illetve a diszkrét konvolúció képletében \eqref{diszkret_konv} lévő $s(n_i, \sigma_i)$-ből származtatott paraméterek. Egy kiválasztott csoport súlyfaktorát a továbbiakban $s(n_{cs}, \sigma_{cs})$-vel fogjuk jelölni, hiszen a kifejezés nem összegzésben szerepel. \Acite{tamas_gabor_tdk} munkában alkalmazott $\sigma_s=2$, $s=1$ választást használjuk kiindulópontnak, és
 ezt optimalizálatlan esetnek nevezzük.
 
 Az $s(n_{cs},\sigma_{cs})$ függvényt sokféleképpen lehet definiálni, tipikusan valamilyen kevés paraméteres szorzat alakot szokás ilyenkor választani.
@@ -185,7 +186,7 @@ s(n_{cs}, \sigma_{cs}) = \frac{1}{p + \sigma_{cs}}
 \end{equation}
 Ez a súly \eqref{masik_suly} független a csoport méretétől és csak egy paramétert tartalmaz, a $p$-t. Ezen kívül egyszerűen veszi figyelembe a csoport szórását, ha az kicsi, akkor nagyobb a súly, ellenkező esetben kisebb. A paraméter állításával pedig a súly csoportszórásra való érzékenységét lehet könnyen változtatni.
 
-Azonban mi ennél egy kicsit nagyobb szabadságot szeretnénk, ezért pl. feloszthatjuk az $(n_{cs}, \sigma_{cs})$ teret tartományokra és az egyes tartományokon alkalmazott súlyok lesznek a paraméterek. A felosztást \aref{felosztas}. táblázat szerint végeztük, ebben külön vettük a $\sigma_{cs} = 0$ esetet.
+Azonban mi ennél egy kicsit nagyobb szabadságot szeretnénk, ezért például feloszthatjuk az $(n_{cs}, \sigma_{cs})$ teret tartományokra és az egyes tartományokon alkalmazott súlyok lesznek a paraméterek. A felosztást \aref{felosztas}. táblázat szerint végeztük, ebben külön vettük a $\sigma_{cs} = 0$ esetet.
 %Többféleképpen is lehet definiálni paramétereket. Feloszthatjuk az $(n_{cs}, \sigma_{cs})$ teret tartományokra és az egyes tartományokon alkalmazott súlyok lesznek a paraméterek. A felosztást \aref{felosztas}. táblázat szerint végeztem, ebben külön vettem a $\sigma_{cs} = 0$ esetet.
 \begin{table}[H]
 	\centering
@@ -230,7 +231,7 @@ Abban, hogy a paraméterek határait hol húzzuk meg \aref{meret_eloszlas} és \
 %TODO: negatív paramétereket nem engedjük meg
 
 \subsection{Sikerességi ráták}
-Ha a becslés pontosságát, sikerességét számokban akarjuk kifejezni, akkor a valódi és a becsült életkor közötti különbséget használhatjuk fel. A becslést elvégezzük az összes személyre, akinek tudjuk az életkorát, majd megnézzük, hogy a becslések hány százalékában volt a becsült és a valós korok közti eltérés $\pm 1, 2,3,4,5$ év. Optimalizálatlan esetben a sikerességek \aref{telefon_sikeresseg_nemopt}. és \aref{iwiw_sikeresseg_nemopt}. táblázatban foglaltak szerint alakulnak.
+Ha a becslés pontosságát, sikerességét számokban akarjuk kifejezni, akkor a valódi és a becsült életkor közötti különbséget használhatjuk fel. A becslést elvégezzük az összes személyre, akinek tudjuk az életkorát, majd megnézzük, hogy a becslések hány százalékában volt a becsült és a valós korok közti eltérés $\pm 1, 2,3,4,5$ év. Optimalizálatlan esetben, azaz amikor $s = 1, \sigma_s = 2$, a sikerességek \aref{telefon_sikeresseg_nemopt}. és \aref{iwiw_sikeresseg_nemopt}. táblázatban foglaltak szerint alakulnak.
 \begin{table}[H]
 	\centering
 	\setstretch{1.5}
@@ -273,10 +274,11 @@ Ha a becslés pontosságát, sikerességét számokban akarjuk kifejezni, akkor 
 	\caption{Sikerességek az iWiW-es adatok esetében}
 	\label{iwiw_sikeresseg_nemopt}
 \end{table}
-A sikerességet a továbbiakban a $\pm 2$ éven belüli becslések hányadosának vesszük. A későbbiekben erre a hibahatárra fogunk optimalizálni, ezért el is nevezzük $E(\mathbf{p})$-nek a $\pm 2$ éven belüli sikerességet, amely egy $0$ és $1$ közötti szám.
+A sikerességet a továbbiakban a $\pm 2$ éven belüli becslések hányadosának vesszük. % TODO: kicsit érthetőbben?
+A későbbiekben erre a hibahatárra fogunk optimalizálni, ezért el is nevezzük $E(\mathbf{p})$-nek a $\pm 2$ éven belüli sikerességet, amely egy $0$ és $1$ közötti szám.
 % TODO: miért jobbak az iwiw-esek?
 \subsection{Kiértékelési idő} \label{kiertekelesi_ido}
-Az $E(\mathbf{p})$ függvény kiértékelési ideje nagyon fontos az optimizálás gyorsasága szempontjából, hiszen $E(\mathbf{p})$ kiszámolása alapvető eleme az összes módszernek. Az életkorbecslő eljárás legtöbb processzoridőt használó része a diszkrét konvolúció \eqref{diszkret_konv}. Ezt ahelyett, hogy ciklussal számoltuk volna, vektorizáltuk. Ennek következtében a számítógép sokkal gyorsabban ki tudja értékelni a $K(a)$ függvényt. Ezen alapszik a fizikusok köreiben is gyakran használt MATLAB programnyelv gyorsasága is. % TODO: jó ez így? ennyit írni az optimalizációról? esetleg: Ezen -> vektorizáláson
+Az $E(\mathbf{p})$ függvény kiértékelési ideje nagyon fontos az optimizálás gyorsasága szempontjából, hiszen $E(\mathbf{p})$ kiszámolása alapvető eleme az összes módszernek. Az életkorbecslő eljárás legtöbb processzoridőt használó része a \mbox{diszkrét konvolúció \eqref{diszkret_konv}}. Ezt ahelyett, hogy ciklussal számoltuk volna, vektorizáltuk. Ennek következtében a számítógép sokkal gyorsabban ki tudja értékelni a $K(a)$ függvényt. Ezen alapszik a fizikusok köreiben is gyakran használt MATLAB programnyelv gyorsasága is. % TODO: jó ez így? ennyit írni az optimalizációról? esetleg: Ezen -> vektorizáláson
 
 A hisztogram kiszámolásának ideje leginkább a csoportok számától függ, ezért az összes csoport száma arányos lesz a kiértékelési idővel.
 \Aref{csoport_kiertekeles}. táblázatban foglaljuk össze az egyes adatbázisokhoz tartozó kiértékelési időket.
@@ -329,10 +331,10 @@ A hisztogram kiszámolásának ideje leginkább a csoportok számától függ, e
 \section{Optimalizációs módszerek}
 Egyszerű esetben az optimalizáció egy függvény minimum- vagy maximumhelyének megkeresését jelenti egy bizonyos tartományon \cite{Holder}. Ez azért lehet nehéz feladat, mert a függvényt kiértékelni egy pontban sokáig tarthat. Nagyon sok idő lenne az értelmezési tartomány egészére kiértékelni a függvényt.
 
-Ebben a fejezetben különböző optimalizációs módszerek alapját próbáltam ki azzal a céllal, hogy az $E(\mathbf{p})$ függvényt maximalizáljam, tehát az életkorbecslés ($\pm 2$ éven belüli) sikerességi hányadosát növeljem.
+Ebben a fejezetben különböző optimalizációs módszereket próbáltunk ki azzal a céllal, hogy az $E(\mathbf{p})$ függvényt maximalizáljuk, tehát az életkorbecslés ($\pm 2$ éven belüli) sikerességi hányadosát növeljük.
 \subsection{Gradiens módszer}
 % https://en.wikipedia.org/wiki/Gradient_descent
-A gradiens módszer \cite{gradient1, gradient2} egy elsőrendű iterációs optimalizációs algoritmus. Adott egy $\mathbf{x_0}$ kezdőpont és egy $F(\mathbf{x})$ függvény, amelyet maximalizálni\footnote{megjegyzés: minimalizálásra is használható a módszer} szeretnénk. A módszer lényege, hogy a kezdőpontban kiszámoljuk $F(\mathbf{x})$ gradiensét, majd ennek irányába mozdulunk el, úgy hogy az elmozdulás nagysága arányos $\nabla F(\mathbf{x})$-el.
+A gradiens módszer \cite{gradient1, gradient2} egy elsőrendű iterációs optimalizációs algoritmus. Adott egy $\mathbf{x_0}$ kezdőpont és egy $F(\mathbf{x})$ függvény, amelyet maximalizálni szeretnénk. A módszer lényege, hogy a kezdőpontban kiszámoljuk $F(\mathbf{x})$ gradiensét, majd ennek irányába mozdulunk el, úgy hogy az elmozdulás nagysága arányos $\nabla F(\mathbf{x})$-el.
 Az algoritmust úgy folytatjuk, hogy az elmozdulás utáni pontot vesszük kezdőpontnak és az előzőeket újra elvégezzük.
 Így a következő rekurzióval írható le a módszer:
 \begin{equation}
@@ -352,7 +354,7 @@ Esetünkben $F \equiv E$, amelyet a $\mathbf{p}$ paraméterek terén értelmezü
 \begin{equation}
 	\frac{\partial f(x)}{\partial x} \approx \frac{f(x+\Delta x) - f(x)}{\Delta x},
 \end{equation}
-ahol $\Delta x = 0,5$-nek választottuk. Ennek az az oka, hogy a sikeresség függvény nem sima, lehetnek benne kis lokális minimumok, mint az \aref{E_param1}. ábrán is látható. 
+ahol $\Delta x = 0{,}5$-nek választottuk. Ennek az az oka, hogy a sikeresség függvény nem sima, lehetnek benne kis lokális minimumok, mint az \aref{E_param1}. ábrán is látható. 
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.8]{img/E_param0.eps}
@@ -378,7 +380,7 @@ Először definiálnunk kell egy hőmérsékletszerű paramétert, melyet $T$-ve
 \end{enumerate} %\\~\\
 Eközben a hőmérsékletet lassan csökkentjük.
 
-Két határesetet érdemes megvizsgálni: a $T \rightarrow \infty$ (magas hőmérséklet) és a $T \rightarrow 0$ (alacsony hőmérséklet) esetet. Az exponenciális kitevőjében mindig egy negatív szám áll, ezért ha $T \rightarrow \infty$, akkor $p \rightarrow 1$, ha pedig $T \rightarrow 0$, akkor $p \rightarrow 0$.
+Két határesetet érdemes megvizsgálni: a $T \rightarrow \infty$ (magas hőmérséklet) és a \mbox{$T \rightarrow 0$} (alacsony hőmérséklet) esetet. Az exponenciális kitevőjében mindig egy negatív szám áll, ezért ha $T \rightarrow \infty$, akkor $p \rightarrow 1$, ha pedig $T \rightarrow 0$, akkor $p \rightarrow 0$.
 Emiatt a kezdeti magas hőmérsékleten az algoritmus be tudja járni a paraméterteret, mert szinte biztosan rosszabb sikerességű helyre is mehet. Azonban a hőmérséklet lassú csökkentésével egyre kisebb az esély, hogy alacsonyabb függvényértékű helyre kerül a program. Zéró hőmérséklethez tartva pedig már csak a jobb megoldások felé mozdul el a program. A módszer működését \aref{fig:simulated_annealing_szemleltetes}. ábra szemlélteti.
 \begin{figure}[H]
 	\centering
@@ -389,8 +391,8 @@ Emiatt a kezdeti magas hőmérsékleten az algoritmus be tudja járni a paramét
 
 \Aref{veletlen_kozeli_pont}. lépésben említett közeli pont sokféleképpen értelmezhető, problémafüggő a választás. Legegyszerűbb ha a paramétertérben egy véletlenszerű irányban elmozdulunk egységnyit, a későbbiekben ezt használtuk.
 
-Az, hogy a hőmérséklet időfüggését, hogyan választjuk meg nagyban függ az adott feladattól, a kezdő- és véghőmérséklet pedig a $\Delta E = E(\mathbf{x}) - E(\mathbf{x}_0)$ érték tipikus nagyságrendjétől (egy százalék változás $\Delta E = 0,01$-et jelent). %TODO: ez nálunk...
-Esetünkben a kezdőhőmérsékletet $0,01$-nek választottuk, majd minden kiértékelés után csökkentettük úgy, hogy lineárisan elérje a nullát. Ekkor a bemenő paraméter a kiértékelések száma, amelynek sebességével állítani tudjuk a hűtés sebességét, minél nagyobb ez a szám, annál lassabb a folyamat.
+Az, hogy a hőmérséklet időfüggését, hogyan választjuk meg nagyban függ az adott feladattól, a kezdő- és véghőmérséklet pedig a $\Delta E = E(\mathbf{x}) - E(\mathbf{x}_0)$ érték tipikus nagyságrendjétől (egy százalék változás $\Delta E = 0{,}01$-et jelent). %TODO: ez nálunk...
+Esetünkben a kezdőhőmérsékletet $0{,}01$-nek választottuk, majd minden kiértékelés után csökkentettük úgy, hogy lineárisan elérje a nullát. Ekkor a bemenő paraméter a kiértékelések száma, amelynek értékével állítani tudjuk a hűtés sebességét, minél nagyobb ez a szám, annál lassabb a folyamat.
 
 A szimulált hűtés várhatóan a sok dimenziós problémákra nem működik olyan jól vagy lassan optimalizál, hiszen a paraméterteret nehezebb, lassabb bejárni, mint egydimenziós esetben. % TODO: görbe illesztésre használják?
 
@@ -405,7 +407,7 @@ A kezdő populációt véletlenszerűen generált egyénekből hozzuk létre. Je
 
 Miután elvégeztük a keresztezést szelekciót hajtunk végre, amely hasonló az evolúció esetén történő természetes kiválasztódáshoz. Először az összes egyedre kiszámítjuk az $E(\mathbf{p})$ sikerességi hányadost, ezeket sorba rendezzük a függvény értéke szerint, majd a legjobbakat kiválasztjuk, a többit pedig eldobjuk. Érdemes annyi egyedet kiválasztani, mint amennyi a populáció kezdő mérete volt, így az algoritmus futási ideje kiszámítható marad. A kiválasztott egyedek alkotják a következő generációt. A megállási feltétel lehet olyan, hogy az utolsó néhány generáció legjobb egyedeit figyelve már nem tapasztalunk javulást, vagy lehet egyszerűen egy fix generációszámmal meghatározni. Az egyszerűség kedvéért az utóbbit alkalmazzuk.
 
-Ha csak a keresztezést és szelekciót alkalmazzuk egy olyan probléma állhat fent, hogy a paraméterteret nem járjuk be csak egy kis tartományon. Ez az optimalizáció hatékonyságát csökkenti. Úgy tehetünk ellene, ha minden generáció esetében az egyedek egy részét kicsivel megváltoztatjuk, ezt a műveletet mutációnak nevezzük. Gyakorlatban az összes egyed, összes tulajdonságát egy bizonyos valószínűséggel megváltoztatjuk. A változás alatt azt értjük, hogy az eredeti értékhez hozzáadunk egy $0,5$ szórású, $0$ várható értékű normális eloszlású számot. % TODO: változó? 
+Ha csak a keresztezést és szelekciót alkalmazzuk egy olyan probléma állhat fent, hogy a paraméterteret nem járjuk be csak egy kis tartományon. Ez az optimalizáció hatékonyságát csökkenti. Ez ellen úgy tehetünk, ha minden generáció esetében az egyedek egy részét kicsivel megváltoztatjuk, ezt a műveletet mutációnak nevezzük. Gyakorlatban az összes egyed, összes tulajdonságát egy bizonyos valószínűséggel megváltoztatjuk. A változás alatt azt értjük, hogy az eredeti értékhez hozzáadunk egy $0{,}5$ szórású, $0$ várható értékű normális eloszlású számot. % TODO: változó? 
 
 \begin{figure}[H]
 	\centering
@@ -440,7 +442,7 @@ Mivel ez egy sztochasztikus módszer, ezért többszöri futás eredményeit is 
 	\caption{Sikeresség a hőmérséklet függvényében, 1000 kiértékelés, 5 futás közül a legrosszabb (piros) és legjobb (zöld) végeredményű (iWiW 50 ismerős)}
 	\label{sa_legek}
 \end{figure}
-\Aref{sa_legek}. ábrán látható két sikeresség függvény, melyeket a szimulált hűtés ötszöri futtatása után választottunk ki, a legrosszabb és a legjobb végeredményűt. Ebből látszik, hogy mekkora eltérés lehet két futás között, a rosszabb 57,6 \%, a jobb 61,4 \% sikeresség lett. Mindkettőnél megfigyelhető kis hőmérsékleten (kb. $0,6 \cdot 10^{-3}$ alatt) egy szinte vízszintes rész, ez amiatt van, mert ilyen kis hőmérsékleten a módszer szinte már csak a jobb megoldások felé mozdul el.
+\Aref{sa_legek}. ábrán látható két sikeresség függvény, melyeket a szimulált hűtés ötszöri futtatása után választottunk ki, a legrosszabb és a legjobb végeredményűt. Ebből látszik, hogy mekkora eltérés lehet két futás között, a rosszabb 57,6 \%, a jobb \mbox{61,4 \%} sikerességű lett. Mindkettőnél megfigyelhető kis hőmérsékleten (kb. \mbox{$0{,}6 \cdot 10^{-3}$} alatt) egy szinte vízszintes rész, ez amiatt van, mert ilyen kis hőmérsékleten a módszer szinte már csak a jobb megoldások felé mozdul el.
 \subsection{Genetikus algoritmus}
 A genetikus algoritmus esetében minden generációban sok egyed van, melyek sikerességét együtt nehéz lenne megjeleníteni, ezért csak az adott generáció legjobb egyedének sikerességét választjuk ki, majd ábrázoljuk. A továbbiakban 10-es populációméretet használunk a futási idő miatt, úgy tűnik, hogy már ezzel is elég jó eredményeket lehet elérni. Azonban meg kell jegyezni, hogy a gyakorlatban ennél jóval nagyobb populációméretet szoktak alkalmazni.
 \begin{figure}[H]
@@ -473,7 +475,7 @@ Az optimalizációs módszerek végeredményeit összehasonlíthatjuk, illetve �
 
 Az optimalizációs módszereket összehasonlíthatjuk a futási idő szempontjából is. Mindegyik ismertetett módszer az $E(\mathbf{p})$ kiértékelésén alapszik, ennek ideje függ attól, hogy melyik adatbázison végzünk optimalizációt (\ref{kiertekelesi_ido}. rész), de független például a paraméterektől. Emiatt a kiértékelések számát vizsgáljuk a futási idő helyett.
 
-A gradiens módszer esetében egy lépéshez 13 kiértékelés kell, hiszen az adott pontban és attól mind a 12 irányba $\Delta x$-el meg kell határozni $E$-t. A szimulált hűtésnél a kiértékelések számát adjuk meg paraméternek. A genetikus algoritmusnál a kiértékelések száma: $\displaystyle 1{,}5 \cdot n_{pop} \cdot n_{gen} $, ahol $n_{pop}$ a populációméret, $n_{gen}$ pedig a generációk száma. A másfeles szorzó a keresztezés miatt kell. % TODO: bővebb magyarázat
+A gradiens módszer esetében egy lépéshez 13 kiértékelés kell, hiszen az adott pontban és attól mind a 12 irányba $\Delta x$-el meg kell határozni $E$ értékét. A szimulált hűtésnél a kiértékelések számát adjuk meg paraméternek. A genetikus algoritmusnál a kiértékelések száma: $\displaystyle 1{,}5 \cdot n_{pop} \cdot n_{gen} $, ahol $n_{pop}$ a populációméret, $n_{gen}$ pedig a generációk száma. A másfeles szorzó a keresztezés miatt kell. % TODO: bővebb magyarázat
 \begin{table}[H]
 	\centering
 	\setstretch{1.5}
@@ -672,7 +674,7 @@ Az viszont így is megállapítható, hogy a telefonos adatok esetében a kisebb
 		\end{tabular}
 		\caption{Telefonos adatok 60-69}
 	\end{subtable}
-	\caption{Az átlagsúlyok szemléltetése szürkeárnyalatos skálán, a fekete a legnagyobb, a fehér a nulla súlyt jelöli}
+	\caption{Az súlyok szemléltetése szürkeárnyalatos skálán, a fekete a legnagyobb, a fehér a nulla súlyt jelöli}
 	\label{suly_szemleltetes}
 \end{table}
 \Aref{suly_szemleltetes}. táblázatban szemléltetjük az iWiW-es és telefonos adatokra vonatkozó súlyokat. A kettőben közös, hogy a 6-nál nagyobb szórású csoportok nem számítanak sokat. Mindkettő esetében sokatmondó az, hogy melyik tartomány a legnagyobb súlyú, iWiW-nél a kis szórású, közepes méretű csoportok a legjelentősebbek, míg a telefonosnál a 0 szórású, legalább két ismert életkorral rendelkező csoportok a fontosak. % TODO: utóbbi gyanús picit
@@ -683,6 +685,9 @@ Munkánk során bemutattunk három optimalizációs módszert, a gradiens módsz
 Az optimalizálatlan esethez képest a sikerességeket iWiW-es adatok esetében kb. 10 \%-al, telefonos adatok esetében kb. 5 \%-al sikerült növelni.
 Az eredményül kapott súlyfaktorokat diszkutáltuk, illetve összehasonlítottuk az iWiW és telefonos hálózatokra kapott súlyokat.
 
+Most, hogy egy átfogó képet kaptunk arról, hogy a vizsgált módszereknek milyen tulajdonságaik vannak, vázoljuk, hogy hogyan javíthatnánk a hatékonyságukon. Az egyik legfontosabb, hogy a súlyok tartományainak felosztását jobban átgondolva, sikerességek vizsgálatával végezzük el, esetlegesen több felé osztva a csoportméret, csoportszórás teret. Új paramétereket hozhatunk be úgy is, hogy a csoportok hálózati tulajdonságait is vizsgáljuk pl. a csoportban egy főre jutó élek száma. % TODO: jó ez?
+A gradiens módszernél sokszor az volt a probléma, hogy a konvergencia lassú volt, ez egy $n$-től függő $\gamma_n$ választással lehet, hogy javítható lenne.
+További javulást érhetnénk el, ha módszereket társítanánk például a szimulált hűtés után kapott paraméterekkel, mint kezdőponttal elindítjuk a gradiens módszert. Mivel az összes futási idő alapja a $E(\mathbf{p})$ kiértékelési ideje, ezt csökkenthetnénk akár GPU-ra való optimalizálással.
 
 %\renewbibmacro{in:}{}
 %\printbibliography[title={Irodalomjegyzék}]
