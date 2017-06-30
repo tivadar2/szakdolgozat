@@ -8,11 +8,8 @@ import sys
 import time
 from random import uniform, shuffle
 from genetic import Population
-import cProfile
-from os import listdir
-import gzip
-import re
 
+# Program kezdete: if __name__ == '__main__':-nél lent
 
 def get_nice_string(list_or_iterator):
     return "[" + ", ".join( str(x) for x in list_or_iterator) + "]"
@@ -48,27 +45,6 @@ def read_groups(ego):
     file.close()
     del file
     return groups
-
-"""
-files = listdir('60-69')
-for filename in files:
-    if '_out.dot' in filename:
-        ego = int(''.join(list(filter(str.isdigit, filename))))
-        egos.append(ego)
-"""
-# Saját exp
-own_exp = []
-sigma = 2
-own_exp.append([0, math.exp(-math.pow(0, 2) / (2 * math.pow(sigma, 2)))])
-for i in range(1, 100):
-    own_exp.append([i, math.exp(-math.pow(i, 2) / (2 * math.pow(sigma, 2)))])
-    own_exp.append([-i, math.exp(-math.pow(i, 2) / (2 * math.pow(sigma, 2)))])
-own_exp = dict(own_exp)
-
-
-def gauss(x):
-    return own_exp[int(x+0.5)]
-    # return math.exp(-x*x/(2*sigma**2))
 
 
 def save_obj(obj, name):
@@ -127,12 +103,11 @@ class MyApplication(object):
         self.egos = []
         self.smoothedAgeDistribution = []
         self.class_egos = []
-        self.q = 1
+        self.q = 1  # Az összes ego hányadára számolja ki a becsléseket
+                    # pl: self.q = 2 -> csak az egók felére végez becslést, ezáltal kb. kétszer gyorsabb
 
         # Paraméterek
         self.params = np.array([1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1], dtype=np.float32)
-        #self.params = np.array([6.7747038649, 7.71053429695, 0.379544637336, 3.19092356402, 3.96399904303, -4.47303253856, 3.49076237822,
-         #1.71134368002, 2.67, 4.32734474146, 8.22419206133])
 
     def make_histogram(self, ego):
         x = np.linspace(0, 80, 81)
@@ -140,12 +115,11 @@ class MyApplication(object):
         for num, g in enumerate(ego.groups):
             if g.averageAge < 0:
                 continue
-            # if sigma == 0:
-            # devs[0] += 1  # 589 ezer ilyen van!!!
             sigma = g.deviation
             groupSize = g.groupSize
 
             suly = 1
+            # Súlyok a különböző csoportméretek és csoportszórások esetén
             if sigma == 0 and groupSize <= 1:
                 suly = self.params[9]
             elif sigma == 0 and groupSize > 1:
@@ -172,11 +146,9 @@ class MyApplication(object):
             matrix[num] = suly*np.exp(-np.square(x - g.averageAge) / (2 * self.params[8]*self.params[8]))
 
         K = matrix.sum(axis=0)/self.smoothedAgeDistribution
-        # plt.plot(x, K)
-        # plt.show()
         return K
 
-    def get_fwhm(self, hist, age):  # TODO: Ezen még lehetne javítani
+    def get_fwhm(self, hist, age):
         half_max = hist[age] / 2
         left_half = 0
         right_half = 100
@@ -208,26 +180,16 @@ class MyApplication(object):
                 h = K[x]
                 w = self.get_fwhm(K, x)
                 v = h / w
-                # if x-1 in range(1, 80) and x-2 in range(1, 80) and x+1 in range(1, 80) and x+2 in range(1, 80):
-                #    v = (K[x]-K[x-1]) + (K[x]-K[x+1]) + (K[x]-K[x+2]) + (K[x]-K[x-2])
                 peak_v.append(v)
 
-        if len(peak_v) == 0:
-            # print(ego) TODO:
+        if len(peak_v) == 0:  # nincs csúcs
+            # print(ego)
             return -1
         if debug:
             print(peak_age, peak_v)
-        best_peak_index = peak_v.index(max(peak_v))  # TODO: ha nem talál csúcsot, akkor mit tegyen? 104840 - üres fájl
+        best_peak_index = peak_v.index(max(peak_v))
         estimated_age = peak_age[best_peak_index]
         # estimated_age = min(peak_age, key=lambda x: abs(x - ego.realAge))  # 50.7%-ig megy így
-        # TODO: csúcskiválasztás javítása
-        # if math.fabs(estimated_age - ego.realAge) <= 2:
-        #    if ego.ID == 82152624:
-        #        with open("histogram_egycsucs.txt", "w+") as file:
-        #            for i in range(81):
-        #                print(i, K[i], file=file)
-        #        plt.plot(np.linspace(0, 80, 81), K)
-        #        plt.show()
         return estimated_age
 
     def read_groups_from_dots(self):
@@ -249,7 +211,7 @@ class MyApplication(object):
         return n
 
     def estimate_all_ages(self, parameters=None):
-        pm1 = 0
+        pm1 = 0  # pm = +- (plus-minus)
         pm2 = 0
         pm3 = 0
         pm4 = 0
@@ -277,11 +239,6 @@ class MyApplication(object):
             if diff <= 25:
                 pm5 += 1
 
-        #print("pm1", pm1/(len(self.class_egos)//self.q))
-        #print("pm2", pm2 / (len(self.class_egos) // self.q))
-        #print("pm3", pm3 / (len(self.class_egos) // self.q))
-        #print("pm4", pm4 / (len(self.class_egos) // self.q))
-        #print("pm5", pm5 / (len(self.class_egos) // self.q))
         return pm2/(len(self.class_egos)//self.q)
 
     def calc_derivative(self, x):
@@ -340,7 +297,8 @@ class MyApplication(object):
                 T -= 0.01/cycles
 
     def genetic_algorithm(self, population_size, generations, mutation):
-        population = Population(self.estimate_all_ages, n=population_size, mutation=mutation)
+        population = Population(self.estimate_all_ages, n=population_size,
+                                mutation=mutation, params_size=self.params.size)
         for i in range(generations):
             population.evolve()
         with open("ga_"+str(population_size)+"_"+str(generations)+"_"+str(mutation)+".log", "w+") as file:
@@ -379,152 +337,18 @@ class MyApplication(object):
 
 
 if __name__ == '__main__':
-
-    """
-    # iWiW adatok konvertálása az Ego class formátumba + pickle
-    # files = listdir('dot')
-    egos = []
-    with open('ids50.dat') as ids_file:
-        egos = [int(line) for line in ids_file.readlines()]
-    # for filename in files:
-    #    if '_out.dot' in filename:
-    #        ego = int(''.join(list(filter(str.isdigit, filename))))
-    #        egos.append(ego)
-
-    allAges = {}
-    with open('birthdate.dat') as birthdate_file:
-        lines = birthdate_file.readlines()
-    for line in lines:
-        id_birthdate = [int(x) for x in line.split()]
-        if id_birthdate[1] == 0 or id_birthdate[1] == 1900:
-            continue
-        allAges[id_birthdate[0]] = 2013 - id_birthdate[1]
-
-    allAges = load_obj("allAges")
-    ages = np.zeros(81)
-    for age in range(81):
-        ages[age] = list(allAges.values()).count(age)
-    aaa = np.zeros(81)
-    x = np.linspace(0, 80, 81)
-    for age in range(81):
-        aaa += (1/(math.sqrt(2*math.pi)*2))*np.exp(-np.square(x - age)/(2*4))*ages[age]
-    ages = aaa/90000
-
-    save_obj(ages, "smoothAgeDistribution_tel_sigma2")
-    plt.plot(np.linspace(0, 80, 81), ages)
-    plt.show()
-
-    class_egos = []
-    count = 0
-    for ego in egos:
-        try:
-            if not 14 <= allAges[ego] < 80:
-                continue
-            class_ego = Ego(ego, allAges[ego])
-        except KeyError:
-            count += 1
-            continue
-        groups = []
-        try:
-            with gzip.open('dot/{}_out.dot.gz'.format(ego)) as file:
-                lines = file.readlines()
-                for line in lines:
-                    ages = []
-                    for j_id in str(line).split(',')[:-1]:
-                        ego_in_group = int(re.findall('\d+', j_id)[0])
-                        if ego_in_group != ego:
-                            try:
-                                ages.append(allAges[ego_in_group])
-                            except KeyError:
-                                ages.append(999)
-                    group = Group(ages)
-                    group.calculate_stats()
-                    groups.append(group)
-        except FileNotFoundError:
-            continue
-        class_ego.groups = groups
-        class_egos.append(class_ego)
-    print(count)
-    print(len(class_egos))
-    save_obj(class_egos, 'iwiw_50_class_egos')
-    """
-
     app = MyApplication()
-    app.smoothedAgeDistribution = load_obj("smoothAgeDistribution_iwiw_sigma2")
-    #app.smoothedAgeDistribution = load_obj("smoothAgeDistribution_tel_sigma2")
-    app.class_egos = load_obj('iwiw_50_class_egos')
-    #app.class_egos = load_obj('class_egos')
-    """
-    group_sizes = [0]*301
-    for class_ego in app.class_egos:
-        for group in class_ego.groups:
-            group_sizes[group.groupSize] += 1
-    plt.plot(np.linspace(0, 20, 21), group_sizes[:21])
-    plt.show()
-
-    group_devs = [0] * 21
-    for class_ego in app.class_egos:
-        for group in class_ego.groups:
-            if group.deviation == 0:
-                group_devs[0] += 1
-                continue
-            for i in range(1, 21):
-                if (i-1) < group.deviation <= i:
-                    group_devs[i] += 1
-                    continue
-    plt.plot(np.linspace(0, 20, 21), group_devs[:21])
-    plt.show()
-    """
-    #app.params = np.array([1.22273272, 0.87814622, -0.57510987, 1.20235717, 1.04234918, 0.18717539,
-    #                       1.05593288, 1.01957651, 1.88473831, 0.38054335, 1.22493008])
+    app.smoothedAgeDistribution = load_obj("smoothAgeDistribution_iwiw_sigma2")  # életkoreloszlás, amelyikkel leosztunk
+    # app.smoothedAgeDistribution = load_obj("smoothAgeDistribution_tel_sigma2")
+    app.class_egos = load_obj('iwiw_50_class_egos')  # itt lehet állítani, hogy melyik hálózatot használjuk
+    # app.class_egos = load_obj('class_egos')
 
     if len(sys.argv) == 1:
         start = time.time()
-        # app.params = [6.7747038649, 7.71053429695, 0.379544637336, 3.19092356402, 3.96399904303, -4.47303253856, 3.49076237822, 1.71134368002, 14.2718478954, 4.32734474146, 8.22419206133]
-        print(app.estimate_all_ages())
-        #with open("param0.txt", "w+") as outfile:
-        #    for i in range(1, 100):
-        #        app.params[0] = i/10
-        #        print(i/10, app.estimate_all_ages())
-        #        print(i/10, app.estimate_all_ages(), file=outfile)
+        print(app.estimate_all_ages())  # Kiírja a sikerességet
         print(app.params)
         end = time.time()
         print(end-start)
-        """
-        ego_set = set()
-        with open("tamas_pred/predictions_200.dat") as file:
-            lines = file.readlines()
-            c = 0
-            for line in lines:
-                age_tamas = int(line.split("\t")[0])
-                estAge_tamas = int(line.split("\t")[1])
-                id_tamas = int(line.split("\t")[2])
-                for e in app.class_egos:
-                    if e.ID == id_tamas:
-                        ego_set.add(e)
-                    if (e.ID == id_tamas and
-                            estAge_tamas != e.estimatedAge and
-                            estAge_tamas-1 != e.estimatedAge and
-                            estAge_tamas+1 != e.estimatedAge):
-                        pass
-                        #print(e.ID, age_tamas, e.realAge, estAge_tamas, e.estimatedAge)
-                        #app.estimate_age(e, True)
-                        #plt.plot(np.linspace(0, 80, 81), app.make_histogram(e))
-                        #plt.show()
-                        c += 1
-        print(c)
-        print(len(app.class_egos))
-        difference = set(app.class_egos) - ego_set
-        print(len(difference), len(set(app.class_egos)), len(ego_set))
-        howManySuccesful = 0
-        allOfThem = 0
-        for ego in difference:
-            if math.fabs(ego.realAge - ego.estimatedAge) <= 2:
-                howManySuccesful += 1
-            allOfThem += 1
-            print(ego.ID, ego.realAge, ego.estimatedAge)
-        print(allOfThem, howManySuccesful)
-        """
     else:
         if sys.argv[1] == 'grad':
             app.gradient_method()
@@ -536,18 +360,3 @@ if __name__ == '__main__':
             app.class_egos = load_obj(sys.argv[5])
             app.q = int(sys.argv[6])
             app.genetic_algorithm(int(sys.argv[2]), int(sys.argv[3]), float(sys.argv[4]))
-
-    # start = time.time()
-    # print(estimate_all_ages())
-    # end = time.time()
-    # print(end-start)
-
-    """
-    percents = []
-    for i in np.linspace(1, 10, 100):
-        opt_sigma = i
-        percents.append(estimate_all_ages())
-
-    plt.plot(np.linspace(1, 10, 100), percents)
-    plt.show()
-    """
